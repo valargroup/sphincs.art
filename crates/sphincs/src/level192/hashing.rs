@@ -248,8 +248,7 @@ pub(crate) fn th(pp: &Pp, tw: &Tweak, payload: &[u8]) -> Digest {
     Midstate::new(pp, tw, &[]).finish(payload)
 }
 pub(crate) fn th_digests(pp: &Pp, tw: &Tweak, values: &[Digest]) -> Digest {
-    let parts: Vec<&[u8]> = values.iter().map(|v| v.as_slice()).collect();
-    Midstate::new(pp, tw, &parts).finish(&[])
+    Midstate::new(pp, tw, &[values.as_flattened()]).finish(&[])
 }
 
 /// SHAKE can emit a pair directly; SHA-256 derives the two 24-byte secrets at distinct addresses.

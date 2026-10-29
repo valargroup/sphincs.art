@@ -81,16 +81,25 @@ fn main() {
                 let elapsed = start.elapsed().as_nanos();
                 let sign_counts = scheme::hash_counts() - before;
                 let sign_peak = PEAK.load(Relaxed) - baseline;
+                let retained = LIVE.load(Relaxed);
+                reset_peak();
+                sig.write_to(&mut std::io::sink()).unwrap();
+                assert_eq!(PEAK.load(Relaxed), retained, "streaming allocated a buffer");
                 reset_peak();
                 let bytes = sig.to_bytes();
                 let serialize_peak = PEAK.load(Relaxed) - baseline;
                 assert_eq!(bytes.len(), cfg.sig_size());
                 scheme::verify(&cfg, &pk, &message, &sig).unwrap();
                 if check {
+                    let budget = match shape {
+                        Shape::Pruned { .. } => 24 * 1024,
+                        Shape::Layered => 28 * 1024,
+                    };
                     assert!(
-                        sign_peak <= 30 * 1024,
-                        "signing heap exceeds 30 KiB: {sign_peak}"
+                        sign_peak <= budget,
+                        "signing heap exceeds {budget} bytes: {sign_peak}"
                     );
+                    assert_eq!(bytes.capacity(), bytes.len(), "serialization overallocates");
                 }
                 if run != 0 {
                     let digest = Sha256::digest(&bytes);

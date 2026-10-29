@@ -385,3 +385,95 @@ fn streamed_forest_openings_cover_every_branch() {
         }
     }
 }
+
+#[test]
+fn streamed_layer_paths_match_the_cached_tree() {
+    for hash in HashFn::ALL {
+        let pp = Pp::new(&config(hash, Variant::Forest), [17; N]);
+        for height in [0, 1, 3, 9] {
+            let key = OtsKey {
+                layer: 1,
+                tree: 19,
+                leaf: 0,
+            };
+            let leaves = (0..1u32 << height)
+                .map(|leaf| wots_leaf(&pp, &[23; 32], &OtsKey { leaf, ..key }))
+                .collect();
+            let reference = XmssTree::from_leaves(
+                &pp,
+                key.layer,
+                key.tree,
+                height,
+                height,
+                0,
+                leaves,
+                Vec::new(),
+            );
+            let selected: Vec<_> = if height <= 3 {
+                (0..1u32 << height).collect()
+            } else {
+                vec![
+                    0,
+                    1,
+                    (1 << (height - 1)) - 1,
+                    1 << (height - 1),
+                    (1 << height) - 2,
+                    (1 << height) - 1,
+                ]
+            };
+            for leaf in selected {
+                let (root, path) = layer_path(&pp, &[23; 32], &OtsKey { leaf, ..key }, height);
+                assert_eq!(root, reference.root());
+                assert_eq!(path, reference.path(u64::from(leaf)));
+            }
+        }
+    }
+}
+
+#[test]
+fn signature_writer_handles_short_writes_and_errors() {
+    use std::io::{self, Write};
+    struct ShortWriter(Vec<u8>);
+    impl Write for ShortWriter {
+        fn write(&mut self, bytes: &[u8]) -> io::Result<usize> {
+            let count = bytes.len().min(7);
+            self.0.extend_from_slice(&bytes[..count]);
+            Ok(count)
+        }
+        fn flush(&mut self) -> io::Result<()> {
+            Ok(())
+        }
+    }
+    struct FailingWriter;
+    impl Write for FailingWriter {
+        fn write(&mut self, _: &[u8]) -> io::Result<usize> {
+            Err(io::ErrorKind::BrokenPipe.into())
+        }
+        fn flush(&mut self) -> io::Result<()> {
+            Ok(())
+        }
+    }
+    for variant in Variant::ALL {
+        for shape in [Shape::Pruned { b: 8 }, Shape::Layered] {
+            let cfg = Config::new(HashFn::Sha2, 20, shape, variant);
+            let expected: Vec<_> = (0..cfg.sig_size()).map(|i| i as u8).collect();
+            let signature = Signature::from_bytes(&cfg, &expected).unwrap();
+            assert_eq!(signature.encoded_len(), expected.len());
+            let mut writer = ShortWriter(Vec::new());
+            signature.write_to(&mut writer).unwrap();
+            assert_eq!(writer.0, expected);
+            let mut small_buffer = [0; N - 1];
+            assert_eq!(
+                signature
+                    .write_to(&mut small_buffer.as_mut_slice())
+                    .unwrap_err()
+                    .kind(),
+                io::ErrorKind::WriteZero
+            );
+            assert_eq!(
+                signature.write_to(&mut FailingWriter).unwrap_err().kind(),
+                io::ErrorKind::BrokenPipe
+            );
+        }
+    }
+}

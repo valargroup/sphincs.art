@@ -155,6 +155,34 @@ use different implementations, so their ratios are not parameter-only speedups.
 Full-tree costs are modeled only. Raw samples and the summary stay outside Git;
 measurements belong in the PR discussion, separate from the calculator's counts.
 
+### Memory use
+
+The 192-bit forest signer builds one coordinate at a time and keeps only the
+selected opening. Lower hypertree layers retain one pending Merkle node per
+height and the selected authentication path, rather than an entire temporary
+tree. These changes preserve signature bytes, addresses and hash-operation
+counts. The top tree remains cached in the secret key; its memory still grows
+with the kept height.
+
+`Signature::write_to` emits the existing wire format to a `std::io::Write`
+destination without allocating another signature buffer. A write failure may
+leave a partial signature in the destination. `encoded_len` reports the exact
+length; `to_bytes` allocates that length once when an owned byte vector is needed.
+
+Run the allocation regression check with:
+
+```sh
+cargo run --locked --release -p sphincs --example memory192 -- --check
+```
+
+The example covers both hash backends for height-20 forest keys, pruned at kept
+height 8 and layered as 8+6+6. It verifies each signature, reports operation counts
+and a signature fingerprint, and enforces signing-heap budgets of 24 KiB and
+28 KiB respectively. The measured heap includes the retained key and signature.
+Stack, static data, allocator overhead and application buffers are excluded;
+this is not a total-RAM bound or hardware-wallet qualification. The example's
+local timing observations also include allocation instrumentation overhead.
+
 ## Credits
 
 - [leanVM](https://github.com/leanEthereum/leanVM): the `sphincs` crate and the Lean security proof are adapted from it.

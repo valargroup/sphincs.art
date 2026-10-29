@@ -85,8 +85,10 @@ pub(super) fn wots_sign_limited(
     let state = encoding_midstate(pp, key, message);
     let (c, x) = (0..limit.min(MAX_ENCODING_ATTEMPTS))
         .find_map(|c| encode_from(&state, c as u32).map(|x| (c as u32, x)))?;
-    let secrets = wots_secrets(pp, master, key);
-    let signature = std::array::from_fn(|i| chain(pp, key, i, 0, x[i] as usize, secrets[i]));
+    let mut signature = wots_secrets(pp, master, key);
+    for (i, value) in signature.iter_mut().enumerate() {
+        *value = chain(pp, key, i, 0, x[i] as usize, *value);
+    }
     Some((c, signature))
 }
 
@@ -108,8 +110,11 @@ pub(super) fn wots_recover(
 
 /// The chain ends of a one-time key, from the master secret.
 pub(super) fn wots_ends(pp: &Pp, master: &MasterSecret, key: &OtsKey) -> [Digest; V] {
-    let secrets = wots_secrets(pp, master, key);
-    std::array::from_fn(|i| chain(pp, key, i, 0, CHAIN_LEN - 1, secrets[i]))
+    let mut ends = wots_secrets(pp, master, key);
+    for (i, value) in ends.iter_mut().enumerate() {
+        *value = chain(pp, key, i, 0, CHAIN_LEN - 1, *value);
+    }
+    ends
 }
 
 /// The leaf of a one-time key, from the master secret.

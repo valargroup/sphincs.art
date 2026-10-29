@@ -138,19 +138,42 @@ pub(super) fn tree_fold(pp: &Pp, key: &OtsKey, leaf: Digest, path: &[Digest]) ->
         })
 }
 
-/// The whole tree of height `height` that holds a one-time key, built from the master secret.
-pub(super) fn layer_tree(pp: &Pp, master: &MasterSecret, key: &OtsKey, height: usize) -> XmssTree {
-    let leaves = (0..1u32 << height)
-        .map(|leaf| wots_leaf(pp, master, &OtsKey { leaf, ..*key }))
-        .collect();
-    XmssTree::from_leaves(
-        pp,
-        key.layer,
-        key.tree,
-        height,
-        height,
-        0,
-        leaves,
-        Vec::new(),
-    )
+/// Builds a root and one authentication path with one pending left node per height.
+/// Every leaf is generated once; completed subtrees are discarded after saving any needed sibling.
+pub(super) fn layer_path(
+    pp: &Pp,
+    master: &MasterSecret,
+    key: &OtsKey,
+    height: usize,
+) -> (Digest, Vec<Digest>) {
+    assert!(height <= crate::MAX_H && u64::from(key.leaf) < 1u64 << height);
+    let mut left_nodes = [[0; N]; crate::MAX_H];
+    let mut path = vec![[0; N]; height];
+    for leaf in 0..1u32 << height {
+        let mut node = wots_leaf(pp, master, &OtsKey { leaf, ..*key });
+        let mut index = leaf;
+        for level in 0..=height {
+            if level == height {
+                return (node, path);
+            }
+            if index == (key.leaf >> level) ^ 1 {
+                path[level] = node;
+            }
+            if index & 1 == 0 {
+                left_nodes[level] = node;
+                break;
+            }
+            node = xmss_node(
+                pp,
+                key.layer,
+                key.tree,
+                level + 1,
+                u64::from(index >> 1),
+                &left_nodes[level],
+                &node,
+            );
+            index >>= 1;
+        }
+    }
+    unreachable!("the final leaf completes the root")
 }

@@ -44,36 +44,53 @@ pub struct Signature {
     pub(super) layers: Vec<LayerSignature>,
 }
 impl Signature {
-    pub fn to_bytes(&self) -> Vec<u8> {
-        let mut out = self.randomizer.to_vec();
+    /// Exact serialized length, including the randomizer, opening and every authenticated layer.
+    pub fn encoded_len(&self) -> usize {
+        let opening_values = match &self.opening {
+            Opening::Forest(_) => Variant::Forest.opening_values(),
+            Opening::Fors(_) => Variant::Fors.opening_values(),
+        };
+        N + opening_values * N
+            + self
+                .layers
+                .iter()
+                .map(|layer| COUNTER_LEN + V * N + layer.path.len() * N)
+                .sum::<usize>()
+    }
+
+    /// Writes the existing wire format without allocating a second signature buffer.
+    /// A writer error is returned unchanged; the destination may already contain a partial signature.
+    pub fn write_to<W: std::io::Write + ?Sized>(&self, writer: &mut W) -> std::io::Result<()> {
+        writer.write_all(&self.randomizer)?;
         match &self.opening {
             Opening::Forest(open) => {
                 for coord in open.iter() {
                     for sub in &coord.sub {
-                        for value in sub.values.iter().chain(sub.path.iter()) {
-                            out.extend_from_slice(value);
-                        }
+                        writer.write_all(sub.values.as_flattened())?;
+                        writer.write_all(sub.path.as_flattened())?;
                     }
-                    for value in &coord.top {
-                        out.extend_from_slice(value);
-                    }
+                    writer.write_all(coord.top.as_flattened())?;
                 }
             }
             Opening::Fors(open) => {
                 for tree in open.iter() {
-                    out.extend_from_slice(&tree.secret);
-                    for value in &tree.path {
-                        out.extend_from_slice(value);
-                    }
+                    writer.write_all(&tree.secret)?;
+                    writer.write_all(tree.path.as_flattened())?;
                 }
             }
         }
         for layer in &self.layers {
-            out.extend_from_slice(&layer.counter.to_le_bytes());
-            for value in layer.wots.iter().chain(layer.path.iter()) {
-                out.extend_from_slice(value);
-            }
+            writer.write_all(&layer.counter.to_le_bytes())?;
+            writer.write_all(layer.wots.as_flattened())?;
+            writer.write_all(layer.path.as_flattened())?;
         }
+        Ok(())
+    }
+
+    pub fn to_bytes(&self) -> Vec<u8> {
+        let mut out = Vec::with_capacity(self.encoded_len());
+        self.write_to(&mut out)
+            .expect("writing to a Vec cannot fail");
         out
     }
     pub fn from_bytes(cfg: &Config, bytes: &[u8]) -> Option<Self> {
@@ -292,9 +309,9 @@ pub(super) fn sign_with_limits(
         let path = if layer == top {
             sk.top.path(u64::from(key.leaf))
         } else {
-            let tree = layer_tree(pp, &sk.master, &key, height);
-            payload = tree.root().to_vec();
-            tree.path(u64::from(key.leaf))
+            let (root, path) = layer_path(pp, &sk.master, &key, height);
+            payload = root.to_vec();
+            path
         };
         signed.push(LayerSignature {
             counter,
