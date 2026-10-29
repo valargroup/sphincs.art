@@ -354,3 +354,34 @@ fn signatures_match_independently_verified_vectors() {
         assert_eq!(hex(&Sha512::digest(sig.to_bytes())), fields[3]);
     }
 }
+
+#[test]
+fn streamed_forest_openings_cover_every_branch() {
+    for hash in HashFn::ALL {
+        let pp = Pp::new(&config(hash, Variant::Forest), [17; N]);
+        let mut expected = None;
+        for selected in 0..forest::SUPERS {
+            let marks = std::array::from_fn(|c| CoordMark {
+                super_child: selected,
+                child: [
+                    (c + selected) % forest::CHILDREN,
+                    (c + selected + 3) % forest::CHILDREN,
+                ],
+                word: [
+                    (selected * 17 + c * 19) as u8,
+                    (255 - selected * 11 - c * 3) as u8,
+                ],
+            });
+            let idx = (1 << 28) - 1;
+            let (key, opening) = forest_sign(&pp, &[29; 32], idx, &marks);
+            assert_eq!(forest_recover(&pp, idx, &marks, &opening), key);
+            if let Some(previous) = expected {
+                assert_eq!(
+                    key, previous,
+                    "the selected opening must not change the key"
+                );
+            }
+            expected = Some(key);
+        }
+    }
+}

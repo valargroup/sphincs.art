@@ -194,131 +194,107 @@ fn order_tops(bit: bool, current: Digest, sibling: Digest) -> [Digest; 2] {
     }
 }
 
-/// A forest instance whose children are known: every level, kept for the openings.
-pub(super) struct Forest {
-    /// `starts[c][s][j][a][i]`: the start of every chain.
-    starts: Vec<Digest>,
-    /// `sub[c][s][j][level][node]`, level 0 being the 8 child leaves and level 2 the two top nodes.
-    sub: Vec<Levels>,
-    /// `top[c][level][node]`, level 0 being the 16 super-children and level 3 the two top nodes.
-    top: Vec<Levels>,
-    key: ForestKey,
-}
-
-/// `(((c * SUPERS + s) * SUBS + j) * CHILDREN + a) * CHILD_CHAINS + i`.
-fn chain_index(c: usize, s: usize, j: usize, a: usize, i: usize) -> usize {
-    (((c * SUPERS + s) * SUBS + j) * CHILDREN + a) * CHILD_CHAINS + i
-}
-
-fn sub_index(c: usize, s: usize, j: usize) -> usize {
-    (c * SUPERS + s) * SUBS + j
-}
-
-impl Forest {
-    /// Builds the whole forest of instance `idx` from the master secret.
-    pub(super) fn new(pp: &Pp, master: &MasterSecret, idx: u64) -> Self {
-        let mut starts = vec![[0u8; N]; COORDS * SUPERS * SUBS * CHILDREN * CHILD_CHAINS];
-        let mut sub = vec![Vec::new(); COORDS * SUPERS * SUBS];
-        let mut top = vec![Vec::new(); COORDS];
-        let mut key = [[[0u8; N]; 2]; COORDS];
-        for c in 0..COORDS {
-            let mut supers = Vec::with_capacity(SUPERS);
-            for s in 0..SUPERS {
-                let mut tops = [[[0u8; N]; 2]; SUBS];
-                for j in 0..SUBS {
-                    let leaves: Vec<Digest> = (0..CHILDREN)
-                        .map(|a| {
-                            let secrets = child_secrets(pp, master, idx, c, s, j, a);
-                            for (i, &start) in secrets.iter().enumerate() {
-                                starts[chain_index(c, s, j, a, i)] = start;
-                            }
-                            let ends = std::array::from_fn(|i| {
-                                forest_chain(pp, idx, c, s, j, a, i, 0, CHAIN_TOP, secrets[i])
-                            });
-                            child_leaf(pp, idx, c, s, j, a, &ends)
-                        })
-                        .collect();
-                    let levels = fold_levels(SUB_HEIGHT, leaves, |level, node, left, right| {
-                        sub_node(pp, idx, c, s, j, level, node, left, right)
+/// Builds one coordinate at a time, retaining only its selected opening and two top nodes.
+/// Chain secrets and unselected tree nodes are discarded as soon as their parent is known.
+pub(super) fn forest_sign(
+    pp: &Pp,
+    master: &MasterSecret,
+    idx: u64,
+    marks: &[CoordMark; COORDS],
+) -> (ForestKey, Box<ForestOpening>) {
+    let mut key = [[[0; N]; 2]; COORDS];
+    // Construct the boxed opening incrementally, avoiding a whole-opening stack temporary.
+    let mut opening = Vec::with_capacity(COORDS);
+    for (c, mark) in marks.iter().enumerate() {
+        let mut open = CoordOpening {
+            sub: std::array::from_fn(|_| SubOpening {
+                values: [[0; N]; CHILD_CHAINS],
+                path: [[0; N]; SUB_HEIGHT],
+            }),
+            top: [[0; N]; TOP_HEIGHT],
+        };
+        let mut supers = [[0; N]; SUPERS];
+        for (s, super_leaf) in supers.iter_mut().enumerate() {
+            let mut tops = [[[0; N]; 2]; SUBS];
+            for (j, sub_top) in tops.iter_mut().enumerate() {
+                let mut leaves = [[0; N]; CHILDREN];
+                for (a, leaf) in leaves.iter_mut().enumerate() {
+                    let secrets = child_secrets(pp, master, idx, c, s, j, a);
+                    let ends = std::array::from_fn(|i| {
+                        forest_chain(pp, idx, c, s, j, a, i, 0, CHAIN_TOP, secrets[i])
                     });
-                    tops[j] = [levels[SUB_HEIGHT - 1][0], levels[SUB_HEIGHT - 1][1]];
-                    sub[sub_index(c, s, j)] = levels;
-                }
-                supers.push(super_child(pp, idx, c, s, &tops));
-            }
-            let levels = fold_levels(TOP_HEIGHT, supers, |level, node, left, right| {
-                top_node(pp, idx, c, level, node, left, right)
-            });
-            key[c] = [levels[TOP_HEIGHT - 1][0], levels[TOP_HEIGHT - 1][1]];
-            top[c] = levels;
-        }
-        Self {
-            starts,
-            sub,
-            top,
-            key,
-        }
-    }
-
-    pub(super) fn key(&self) -> &ForestKey {
-        &self.key
-    }
-
-    /// The opening of every coordinate at the digest's marks.
-    pub(super) fn open(&self, pp: &Pp, idx: u64, marks: &[CoordMark; COORDS]) -> ForestOpening {
-        std::array::from_fn(|c| {
-            let mark = marks[c];
-            let s = mark.super_child;
-            CoordOpening {
-                sub: std::array::from_fn(|j| {
-                    let (a, word) = (mark.child[j], lut(mark.word[j]));
-                    let values = std::array::from_fn(|i| {
-                        let start = self.starts[chain_index(c, s, j, a, i)];
-                        forest_chain(
-                            pp,
-                            idx,
-                            c,
-                            s,
-                            j,
-                            a,
-                            i,
-                            0,
-                            CHAIN_TOP - word[i] as usize,
-                            start,
-                        )
-                    });
-                    let levels = &self.sub[sub_index(c, s, j)];
-                    SubOpening {
-                        values,
-                        path: std::array::from_fn(|level| levels[level][(a >> level) ^ 1]),
+                    *leaf = child_leaf(pp, idx, c, s, j, a, &ends);
+                    if s == mark.super_child && a == mark.child[j] {
+                        let word = lut(mark.word[j]);
+                        open.sub[j].values = std::array::from_fn(|i| {
+                            forest_chain(
+                                pp,
+                                idx,
+                                c,
+                                s,
+                                j,
+                                a,
+                                i,
+                                0,
+                                CHAIN_TOP - word[i] as usize,
+                                secrets[i],
+                            )
+                        });
                     }
-                }),
-                top: std::array::from_fn(|level| self.top[c][level][(s >> level) ^ 1]),
+                }
+                let mut path = [[0; N]; SUB_HEIGHT];
+                *sub_top = fold_opening(
+                    &mut leaves,
+                    mark.child[j],
+                    &mut path,
+                    |level, node, left, right| sub_node(pp, idx, c, s, j, level, node, left, right),
+                );
+                if s == mark.super_child {
+                    open.sub[j].path = path;
+                }
             }
-        })
+            *super_leaf = super_child(pp, idx, c, s, &tops);
+        }
+        key[c] = fold_opening(
+            &mut supers,
+            mark.super_child,
+            &mut open.top,
+            |level, node, left, right| top_node(pp, idx, c, level, node, left, right),
+        );
+        opening.push(open);
     }
+    (
+        key,
+        opening
+            .into_boxed_slice()
+            .try_into()
+            .expect("one opening per coordinate"),
+    )
 }
 
-/// The levels of a Merkle tree over `leaves`, hashed up to level `height - 1` (two nodes): the root
-/// is never hashed.
-fn fold_levels(
-    height: usize,
-    leaves: Vec<Digest>,
+/// Reduces the leaves in place to two top nodes, saving siblings before overwriting each level.
+/// The last path entry is the other top node: this construction never hashes the two tops together.
+fn fold_opening(
+    leaves: &mut [Digest],
+    selected: usize,
+    path: &mut [Digest],
     node: impl Fn(usize, usize, &Digest, &Digest) -> Digest,
-) -> Levels {
-    let mut levels = vec![leaves];
-    for level in 0..height - 1 {
-        let below = &levels[level];
-        let up = (0..below.len() / 2)
-            .map(|j| node(level, j, &below[2 * j], &below[2 * j + 1]))
-            .collect();
-        levels.push(up);
+) -> [Digest; 2] {
+    debug_assert_eq!(leaves.len(), 1 << path.len());
+    debug_assert!(selected < leaves.len());
+    let mut width = leaves.len();
+    let height = path.len();
+    for (level, sibling) in path.iter_mut().enumerate() {
+        *sibling = leaves[(selected >> level) ^ 1];
+        if level + 1 < height {
+            for j in 0..width / 2 {
+                leaves[j] = node(level, j, &leaves[2 * j], &leaves[2 * j + 1]);
+            }
+            width /= 2;
+        }
     }
-    levels
+    [leaves[0], leaves[1]]
 }
-
-/// The levels of a Merkle tree, level 0 being its leaves.
-type Levels = Vec<Vec<Digest>>;
 
 /// `Fts.recover`: the forest key an opening reaches.
 pub(super) fn forest_recover(

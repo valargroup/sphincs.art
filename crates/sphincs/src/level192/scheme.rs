@@ -270,11 +270,10 @@ pub(super) fn sign_with_limits(
         .ok_or(SignError::RandomizerExhausted)?;
     let (opening, mut payload) = match cfg.variant {
         Variant::Forest => {
-            let forest = Forest::new(pp, &sk.master, idx);
-            let opening = forest.open(pp, idx, &forest_marks(&digest, cfg.h));
+            let (key, opening) = forest_sign(pp, &sk.master, idx, &forest_marks(&digest, cfg.h));
             (
-                Opening::Forest(Box::new(opening)),
-                forest.key().as_flattened().as_flattened().to_vec(),
+                Opening::Forest(opening),
+                key.as_flattened().as_flattened().to_vec(),
             )
         }
         Variant::Fors => {
