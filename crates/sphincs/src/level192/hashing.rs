@@ -313,3 +313,49 @@ pub(crate) fn randomizer_material(pp: &Pp, seed: &MasterSecret, message: &[u8]) 
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn primitive_backends_match_published_nist_vectors() {
+        // NIST's "abc" samples, including the full primitive outputs before truncation:
+        // https://csrc.nist.gov/CSRC/media/Projects/Cryptographic-Standards-and-Guidelines/documents/examples/SHA256.pdf
+        // https://csrc.nist.gov/CSRC/media/Projects/Cryptographic-Standards-and-Guidelines/documents/examples/SHA512.pdf
+        fn hex(bytes: &[u8]) -> String {
+            bytes.iter().map(|b| format!("{b:02x}")).collect()
+        }
+        let mut small = State::new(HashFn::Sha2, Primitive::Small);
+        small.update(b"abc");
+        assert_eq!(
+            hex(&small.finish::<32>()),
+            "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+        );
+        let mut wide = State::new(HashFn::Sha2, Primitive::Wide);
+        wide.update(b"abc");
+        assert_eq!(
+            hex(&wide.finish::<64>()),
+            concat!(
+                "ddaf35a193617abacc417349ae20413112e6fa4e89a97ea20a9eeee64b55d39a",
+                "2192992a274fc1a836ba3c23a3feebbd454d4423643ce80e2a9ac94fa54ca49f"
+            )
+        );
+        // First 192 output bytes of NIST's empty-message SHAKE256 sample. This crosses the
+        // 136-byte rate boundary, exercising an additional squeeze permutation.
+        // https://csrc.nist.gov/CSRC/media/Projects/Cryptographic-Standards-and-Guidelines/documents/examples/SHAKE256_Msg0.pdf
+        let shake = State::new(HashFn::Shake256, Primitive::Wide);
+        assert_eq!(
+            hex(&shake.finish::<192>()),
+            concat!(
+                "46b9dd2b0ba88d13233b3feb743eeb243fcd52ea62b81b82b50c27646ed5762f",
+                "d75dc4ddd8c0f200cb05019d67b592f6fc821c49479ab48640292eacb3b7c4be",
+                "141e96616fb13957692cc7edd0b45ae3dc07223c8e92937bef84bc0eab862853",
+                "349ec75546f58fb7c2775c38462c5010d846c185c15111e595522a6bcd16cf86",
+                "f3d122109e3b1fdd943b6aec468a2d621a7c06c6a957c62b54dafc3be87567d6",
+                "77231395f6147293b68ceab7a9e0c58d864e8efde4e1b9a46cbe854713672f5c"
+            )
+        );
+        assert_eq!(cost(HashFn::Shake256, Primitive::Wide, 0, 192).keccak, 2);
+    }
+}
