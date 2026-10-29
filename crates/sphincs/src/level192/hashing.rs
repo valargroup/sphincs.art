@@ -7,9 +7,9 @@
 
 use super::*;
 use core::ops::{Add, AddAssign, Mul, Sub};
-use hmac::{Hmac, KeyInit, Mac};
+use hmac::{Hmac, Mac};
 use sha2::{Digest as ShaDigest, Sha256, Sha512};
-use shake::{
+use sha3::{
     Shake256,
     digest::{ExtendableOutput, Update, XofReader},
 };

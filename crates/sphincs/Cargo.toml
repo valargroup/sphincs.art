@@ -21,9 +21,12 @@ hash-counts = ["std"]
 keccak.workspace = true
 blake2s.workspace = true
 sha256.workspace = true
-sha2 = "=0.11.1"
-shake = "=0.1.0"
-hmac = "=0.13.0"
+# RustCrypto 0.10-era releases (the 192-bit family's SHA-2, SHAKE256 and HMAC), so the crate can
+# share a dependency tree with code pinned to the 0.11 pre-releases, as the Keystone firmware is.
+# The hash outputs are standard and do not depend on the release.
+sha2 = { version = "0.10", default-features = false }
+sha3 = { version = "0.10", default-features = false }
+hmac = { version = "0.12", default-features = false }
 
 [[bench]]
 name = "configurations"
