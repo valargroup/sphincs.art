@@ -11,6 +11,13 @@
 //! `tw`; each hash has its own layout ([`hash`]). Every hash call goes through [`hash`], which also
 //! counts compressions (thread-local) so tests can check the note's costs.
 
+#![cfg_attr(not(feature = "std"), no_std)]
+
+extern crate alloc;
+
+#[allow(unused_imports)]
+use alloc::{vec, vec::Vec};
+
 mod hash;
 pub use hash::*;
 mod wots;

@@ -84,7 +84,7 @@ pub fn encode(pp: &Pp, key: &OtsKey, message: &[u8], c: u32) -> Option<[u8; V]> 
 /// The 128 digest bits as 64 chunks of 2 bits, little endian; a codeword if they sum to `T`.
 pub fn codeword(digest: &Digest) -> Option<[u8; V]> {
     let d = u128::from_le_bytes(*digest);
-    let x: [u8; V] = std::array::from_fn(|i| ((d >> (W * i)) & (CHAIN_LEN as u128 - 1)) as u8);
+    let x: [u8; V] = core::array::from_fn(|i| ((d >> (W * i)) & (CHAIN_LEN as u128 - 1)) as u8);
     (x.iter().map(|&c| c as usize).sum::<usize>() == TARGET_SUM).then_some(x)
 }
 
@@ -99,14 +99,14 @@ pub fn wots_encode(pp: &Pp, key: &OtsKey, message: &[u8]) -> Option<(u32, [u8; V
 pub fn wots_sign(pp: &Pp, master: &MasterSecret, key: &OtsKey, message: &[u8]) -> Option<(u32, [Digest; V])> {
     let (c, x) = wots_encode(pp, key, message)?;
     let secrets = wots_secrets(pp, master, key);
-    let signature = std::array::from_fn(|i| chain(pp, key, i, 0, x[i] as usize, secrets[i]));
+    let signature = core::array::from_fn(|i| chain(pp, key, i, 0, x[i] as usize, secrets[i]));
     Some((c, signature))
 }
 
 /// `Ots.leaf`: the leaf a claimed signature recovers, or `None` if the counter is not admissible.
 pub fn wots_recover(pp: &Pp, key: &OtsKey, message: &[u8], c: u32, signature: &[Digest; V]) -> Option<Digest> {
     let x = encode(pp, key, message, c)?;
-    let ends = std::array::from_fn(|i| {
+    let ends = core::array::from_fn(|i| {
         let start = x[i] as usize;
         chain(pp, key, i, start, CHAIN_LEN - 1 - start, signature[i])
     });
@@ -116,7 +116,7 @@ pub fn wots_recover(pp: &Pp, key: &OtsKey, message: &[u8], c: u32, signature: &[
 /// The chain ends of a one-time key, from the master secret.
 pub fn wots_ends(pp: &Pp, master: &MasterSecret, key: &OtsKey) -> [Digest; V] {
     let secrets = wots_secrets(pp, master, key);
-    std::array::from_fn(|i| chain(pp, key, i, 0, CHAIN_LEN - 1, secrets[i]))
+    core::array::from_fn(|i| chain(pp, key, i, 0, CHAIN_LEN - 1, secrets[i]))
 }
 
 /// The leaf of a one-time key, from the master secret.

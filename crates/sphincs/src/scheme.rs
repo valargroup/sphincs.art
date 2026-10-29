@@ -87,19 +87,19 @@ impl Signature {
             &bytes[at - len..at]
         };
         let randomizer = take(RANDOMIZER_LEN).try_into().unwrap();
-        let forest: ForestOpening = std::array::from_fn(|_| CoordOpening {
-            sub: std::array::from_fn(|_| SubOpening {
-                values: std::array::from_fn(|_| take(N).try_into().unwrap()),
-                path: std::array::from_fn(|_| take(N).try_into().unwrap()),
+        let forest: ForestOpening = core::array::from_fn(|_| CoordOpening {
+            sub: core::array::from_fn(|_| SubOpening {
+                values: core::array::from_fn(|_| take(N).try_into().unwrap()),
+                path: core::array::from_fn(|_| take(N).try_into().unwrap()),
             }),
-            top: std::array::from_fn(|_| take(N).try_into().unwrap()),
+            top: core::array::from_fn(|_| take(N).try_into().unwrap()),
         });
         let layers = cfg
             .layers()
             .iter()
             .map(|&height| LayerSignature {
                 counter: u32::from_le_bytes(take(COUNTER_LEN).try_into().unwrap()),
-                wots: std::array::from_fn(|_| take(N).try_into().unwrap()),
+                wots: core::array::from_fn(|_| take(N).try_into().unwrap()),
                 path: (0..height).map(|_| take(N).try_into().unwrap()).collect(),
             })
             .collect();
@@ -151,10 +151,10 @@ pub fn message_digest(pp: &Pp, h: usize, rho: &Randomizer, m: &Message) -> (u64,
     let d = digest_block(pp, rho, m);
     let high = u128::from_le_bytes(d[16..32].try_into().unwrap());
     let field = |offset: usize, bits: usize| ((high >> offset) & ((1u128 << bits) - 1)) as usize;
-    let marks = std::array::from_fn(|c| CoordMark {
+    let marks = core::array::from_fn(|c| CoordMark {
         super_child: field(SUBS * COORDS * SUB_HEIGHT + TOP_HEIGHT * c, TOP_HEIGHT),
-        child: std::array::from_fn(|j| field(SUB_HEIGHT * (SUBS * c + j), SUB_HEIGHT)),
-        word: std::array::from_fn(|j| d[SUBS * c + j]),
+        child: core::array::from_fn(|j| field(SUB_HEIGHT * (SUBS * c + j), SUB_HEIGHT)),
+        word: core::array::from_fn(|j| d[SUBS * c + j]),
     });
     (index_of_block(&d, h), marks)
 }
@@ -394,7 +394,7 @@ mod tests {
     use super::*;
 
     fn seed(x: u8) -> MasterSecret {
-        std::array::from_fn(|i| x.wrapping_mul(31).wrapping_add(i as u8))
+        core::array::from_fn(|i| x.wrapping_mul(31).wrapping_add(i as u8))
     }
 
     fn keccak(h: usize, b: usize) -> Config {
@@ -432,7 +432,7 @@ mod tests {
                     let (sk, pk) = key_gen(&cfg, &seed(h as u8));
                     assert_eq!(compressions() - before, keygen_compressions(&cfg), "{cfg:?}");
                     for t in 0..2u8 {
-                        let m: Message = std::array::from_fn(|i| t ^ i as u8);
+                        let m: Message = core::array::from_fn(|i| t ^ i as u8);
                         let sig = sign(&sk, &m);
                         let bytes = sig.to_bytes();
                         assert_eq!(bytes.len(), cfg.sig_size(), "{cfg:?}");
@@ -509,7 +509,7 @@ mod tests {
     fn tampered_signatures_are_rejected() {
         let cfg = keccak(24, 10);
         let (sk, pk) = key_gen(&cfg, &seed(9));
-        let m: Message = std::array::from_fn(|i| i as u8);
+        let m: Message = core::array::from_fn(|i| i as u8);
         let sig = sign(&sk, &m);
         assert_eq!(verify(&cfg, &pk, &m, &sig), Ok(()));
         let bytes = sig.to_bytes();
@@ -565,7 +565,7 @@ mod tests {
     /// unnoticed.
     #[test]
     fn known_answers() {
-        let m: Message = std::array::from_fn(|i| (7 * i) as u8);
+        let m: Message = core::array::from_fn(|i| (7 * i) as u8);
         let pinned = [
             (HashFn::Keccak256, "ca5d2198161c54565a817acef82364c483b407ccd90523fd2028c5e231630627",
              "d7bf691134f95dedae162429d13a9c923a073fda901482a1586b573f5534f19b", 14251),
@@ -608,7 +608,7 @@ mod tests {
         let (sk, _) = key_gen(&keccak(24, 10), &seed(4));
         let pp = &sk.pp;
         for t in 0..4u8 {
-            let m: Message = std::array::from_fn(|i| t.wrapping_mul(17) ^ i as u8);
+            let m: Message = core::array::from_fn(|i| t.wrapping_mul(17) ^ i as u8);
             let walk = randomizer_walk(pp, &sk.master, &m);
             assert_eq!(walk.step[0] & 1, 1);
             let lands = |rho: &Randomizer| sk.top.contains(digest_index(pp, 24, rho, &m));
@@ -714,7 +714,7 @@ mod tests {
     /// forest key at the bottom and for a 16-byte root above.
     #[test]
     fn encoding_absorbs_the_message_and_the_counter() {
-        let key: ForestKey = std::array::from_fn(|c| std::array::from_fn(|half| [(2 * c + half) as u8; N]));
+        let key: ForestKey = core::array::from_fn(|c| core::array::from_fn(|half| [(2 * c + half) as u8; N]));
         let pp = Pp::new(HashFn::Keccak256, [3u8; PUBLIC_PARAM_LEN]);
         let input = [&pp.bytes()[..], &address(&tweak(TWEAK_ENC, 0, 77)), &forest_key_bytes(&key), &5u32.to_le_bytes()].concat();
         assert_eq!(input.len(), 292);
