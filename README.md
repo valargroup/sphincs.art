@@ -103,7 +103,14 @@ Additional attack routes and limitations:
   need about 11,794 encoding attempts on average, versus about 14,670 in the
   original family. Matching an encoding, neighbouring encodings followed by
   chain preimages, and adversarial reuse of few-time instances remain distinct
-  routes. The cover calculation is not a bound on all of them.
+  routes. Equal target sums rule out a different valid encoding obtained solely
+  by advancing exposed WOTS chains: changing any digit then requires decreasing
+  another. There are at most 96×95 immediate neighbours obtained by moving one
+  unit between two digits; exploiting one also requires reversing a chain.
+  The restricted encoding space must be considered together with the work of
+  finding an admissible counter, not treated as a uniform 192-bit codeword.
+  No adaptive multi-target bound for these combined routes is established here;
+  the cover calculation does not bound them.
 - Adding a hypothetical 2^-192 hash-search term to a 2^-192 cover term gives the
   repository's 191-bit classical screening convention. This union-bound
   arithmetic is not a reduction proving those hypotheses for this signer.
@@ -123,6 +130,7 @@ hardware-wallet support, threshold protocols, or device-rate extrapolations.
 ```sh
 cargo test --locked --workspace
 python3 scripts/level192.py --check
+python3 -m unittest discover -s scripts -p test_level192.py
 cargo run --locked --release -p sphincs --example level192_vectors | python3 scripts/reference192.py
 python3 scripts/scheme.py --json > site/data.json
 ```

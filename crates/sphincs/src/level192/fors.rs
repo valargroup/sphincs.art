@@ -86,7 +86,9 @@ pub(super) fn fors_sign(
         let mut levels = vec![leaves];
         for level in 0..FORS_HEIGHT - 1 {
             let up = levels[level]
-                .chunks_exact(2)
+                .as_chunks::<2>()
+                .0
+                .iter()
                 .enumerate()
                 .map(|(j, pair)| node(pp, instance, tree, level, j, &pair[0], &pair[1]))
                 .collect();

@@ -1055,6 +1055,8 @@ footer a + a { margin-left: 1.25rem; }
   function info(tip, cls) { return '<span class="info' + (cls || '') + '" tabindex="0" role="button" aria-label="More information" data-tip="' + tip + '">i</span>'; }
   var NOTE = 'https://github.com/TomWambsgans/sphincs.art/releases/download/doc-latest/leanSPHINCS.pdf';
   var LIFE_TIP = '127 bits of security (ROM), [proved in Lean](https://github.com/TomWambsgans/sphincs.art/tree/main/formal/sphincs)';
+  var modeTip = document.querySelector('[aria-labelledby="tl-shape"]').previousElementSibling.querySelector('.info');
+  var originalModeTip = modeTip.getAttribute('data-tip');
   // the two FTS, for the tip of the FTS variant
   var FOREST_TIP = '# WOTS forest\n8 trees of height 4. Each leaf hashes the top nodes of two subtrees of height 3 over WOTS keys of 6 chains of length 5, with target sum 5 ([paragraph 4](' + NOTE + '#page=8))\n(credit: Jonas Nick, [sig.golf](https://github.com/Layr-Labs/sig.golf/commit/3321b777a511a6b454aad7ab721e8ab1af21c4d0))';
   function forsTip(v) {
@@ -1187,6 +1189,7 @@ footer a + a { margin-left: 1.25rem; }
     document.querySelector('section.modes').hidden = experimental;
     document.querySelector('figure').hidden = experimental;
     document.getElementById('tl-h').textContent = experimental ? 'Height' : 'Lifetime';
+    modeTip.setAttribute('data-tip', experimental ? 'Uniform uses three XMSS layers. Pruning keeps a subtree of a single XMSS tree and searches for a message digest that lands in it. The table includes each kept height and the full tree. The cover model accounts for the kept subtree, but full-scheme security and pruning privacy are unproved for this family.' : originalModeTip);
     document.querySelector('[aria-labelledby="tl-h"]')?.previousElementSibling.querySelector('.info')?.setAttribute('data-tip', experimental ? 'Total tree height. The experimental cover-model budgets are listed below; no lifetime is proved.' : LIFE_TIP);
     document.getElementById('ots-tip').setAttribute('data-tip', experimental ? '96 chains of four positions; target sum 182; 24-byte nodes.' : '64 chains of four positions; target sum 128; 16-byte nodes.');
     [].forEach.call(document.querySelectorAll('[data-key="h"] button'), function (b) { b.innerHTML = experimental ? 'h = ' + b.dataset.val : '2<sup>' + (+b.dataset.val + 4) + '</sup>'; b.setAttribute('aria-label', experimental ? 'Height ' + b.dataset.val : '2 to the ' + (+b.dataset.val + 4)); });

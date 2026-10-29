@@ -7,11 +7,14 @@ metadata.json, samples.jsonl and summary.md. No hardware-wallet rates are inferr
 import argparse
 from collections import defaultdict
 import json
+import os
 from pathlib import Path
 import platform
 import statistics
 import subprocess
 import time
+
+import level192
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -65,9 +68,13 @@ def main(argv=None):
     destination.mkdir(parents=True)
     commit = read_command(["git", "rev-parse", "HEAD"])
     cpu = read_command(["sysctl", "-n", "machdep.cpu.brand_string"]) if platform.system() == "Darwin" else platform.processor()
-    metadata = dict(commit=commit, dirty=False, compiler=read_command(["rustc", "--version"]),
+    metadata = dict(commit=commit, dirty=False, compiler=read_command(["rustc", "--version", "--verbose"]),
                     cargo=read_command(["cargo", "--version"]), os=platform.platform(), cpu=cpu,
                     cargo_config=(ROOT / ".cargo/config.toml").read_text(),
+                    cargo_manifest=(ROOT / "Cargo.toml").read_text(),
+                    flag_overrides={key: os.environ.get(key) for key in
+                                    ("RUSTFLAGS", "CARGO_ENCODED_RUSTFLAGS", "CARGO_PROFILE_RELEASE_OPT_LEVEL",
+                                     "CARGO_PROFILE_RELEASE_LTO", "CARGO_PROFILE_RELEASE_CODEGEN_UNITS")},
                     arguments={k: str(v) if isinstance(v, Path) else v for k, v in vars(args).items()},
                     threads=1, warmup_batches=1, message_bytes=32, status="building")
     def save():
@@ -82,12 +89,14 @@ def main(argv=None):
         command = [binaries[0]]
         for key in ("families", "hashes", "heights", "shapes", "variants", "runs", "messages", "verify_iters"):
             command += ["--" + key.replace("_", "-"), str(getattr(args, key))]
-        metadata.update(status="running", started_utc=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()))
+        metadata.update(status="running", started_utc=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+                        load_average_start=list(os.getloadavg()), logical_cpus=os.cpu_count())
         save()
         started = time.monotonic()
         with (destination / "samples.jsonl").open("w") as output:
             subprocess.run(command, cwd=ROOT, stdout=output, check=True, timeout=7200)
         metadata["elapsed_seconds"] = time.monotonic()-started
+        metadata["load_average_end"] = list(os.getloadavg())
         assert read_command(["git", "rev-parse", "HEAD"]) == commit and not read_command(["git", "status", "--porcelain"]), "source changed during measurement"
         rows = [json.loads(line) for line in (destination / "samples.jsonl").read_text().splitlines()]
         expected = set()
@@ -104,6 +113,12 @@ def main(argv=None):
                                     expected.add((int(family), hash_name, variant, h, shape, run))
         actual = [tuple(r[k] for k in ("family", "hash", "variant", "h", "shape", "run")) for r in rows]
         assert len(actual) == len(set(actual)) and set(actual) == expected and expected, "incomplete matrix"
+        for row in rows:
+            if row["family"] == 192:
+                hash_name, variant, h, shape = (row[k] for k in ("hash", "variant", "h", "shape"))
+                assert row["signature_bytes"] == level192.signature_size(variant, h, shape)
+                assert row["keygen_counts"] == level192.keygen_cost(hash_name, variant, h, shape, row["b"])
+                assert row["verify_counts"] == level192.verify_cost(hash_name, variant, h, shape, row["message_bytes"])
         metadata.update(status="complete", samples=len(rows))
         (destination / "summary.md").write_text(summarize(rows))
     except BaseException as exc:
