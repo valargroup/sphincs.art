@@ -188,6 +188,26 @@ impl State {
     }
 }
 
+/// Packs the fixed-width addressed transcript before handing it to the hash provider.
+fn addressed_prefix(pp: &Pp, tw: &Tweak) -> [u8; PREFIX_LEN] {
+    let mut prefix = [0; PREFIX_LEN];
+    prefix[..DOMAIN.len()].copy_from_slice(DOMAIN);
+    prefix[DOMAIN.len()] = pp.variant.id();
+    prefix[DOMAIN.len() + 1..PREFIX_LEN - 16].copy_from_slice(&pp.bytes);
+    prefix[PREFIX_LEN - 16..].copy_from_slice(&address(tw));
+    prefix
+}
+
+/// Hashes a single addressed payload without cloning a state intended for repeated searches.
+fn addressed_hash<const L: usize>(pp: &Pp, tw: &Tweak, payload: &[u8]) -> [u8; L] {
+    let kind = kind(tw);
+    let mut state = State::new(pp.hash, kind);
+    state.update(&addressed_prefix(pp, tw));
+    state.update(payload);
+    count(cost(pp.hash, kind, PREFIX_LEN + payload.len(), L));
+    state.finish()
+}
+
 /// A cached prefix: accounting charges whole input blocks once, and each completed tail separately.
 #[derive(Clone)]
 pub(crate) struct Midstate {
@@ -200,10 +220,7 @@ impl Midstate {
     pub(crate) fn new(pp: &Pp, tw: &Tweak, parts: &[&[u8]]) -> Self {
         let kind = kind(tw);
         let mut state = State::new(pp.hash, kind);
-        state.update(DOMAIN);
-        state.update(&[pp.variant.id()]);
-        state.update(&pp.bytes);
-        state.update(&address(tw));
+        state.update(&addressed_prefix(pp, tw));
         let mut len = PREFIX_LEN;
         for part in parts {
             state.update(part);
@@ -245,17 +262,17 @@ impl Midstate {
 }
 
 pub(crate) fn th(pp: &Pp, tw: &Tweak, payload: &[u8]) -> Digest {
-    Midstate::new(pp, tw, &[]).finish(payload)
+    addressed_hash(pp, tw, payload)
 }
 pub(crate) fn th_digests(pp: &Pp, tw: &Tweak, values: &[Digest]) -> Digest {
-    Midstate::new(pp, tw, &[values.as_flattened()]).finish(&[])
+    addressed_hash(pp, tw, values.as_flattened())
 }
 
 /// SHAKE can emit a pair directly; SHA-256 derives the two 24-byte secrets at distinct addresses.
 pub(crate) fn th_pair(pp: &Pp, tw: &Tweak, payload: &[u8]) -> [Digest; 2] {
     match pp.hash {
         HashFn::Shake256 => {
-            let out: [u8; 48] = Midstate::new(pp, tw, &[]).finish(payload);
+            let out: [u8; 48] = addressed_hash(pp, tw, payload);
             [out[..N].try_into().unwrap(), out[N..].try_into().unwrap()]
         }
         HashFn::Sha2 => [th(pp, &tw.step(0), payload), th(pp, &tw.step(1), payload)],

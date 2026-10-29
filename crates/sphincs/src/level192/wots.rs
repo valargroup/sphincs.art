@@ -51,8 +51,8 @@ pub(super) fn wots_leaf_hash(pp: &Pp, key: &OtsKey, ends: &[Digest; V]) -> Diges
     th_digests(pp, &key.tweak(TWEAK_LEAF, 0), ends)
 }
 
-/// The encoding hash after its fixed part, `P | A(enc, 0, leaf) | message`. The counter falls in the
-/// last block, so each counter costs one compression.
+/// The encoding hash after its fixed part. Searches reuse this state and hash only the counter
+/// and final padding again; the remaining compression count depends on the backend and payload.
 pub(super) fn encoding_midstate(pp: &Pp, key: &OtsKey, message: &[u8]) -> Midstate {
     Midstate::new(pp, &key.tweak(TWEAK_ENC, 0), &[message])
 }
