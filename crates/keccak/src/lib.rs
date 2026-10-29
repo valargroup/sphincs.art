@@ -7,6 +7,8 @@
 //! Hashing `len` bytes costs `len / 136 + 1` permutations: the padding takes at least one byte, so an
 //! input that fills its last block exactly pays one more permutation for the padding alone.
 
+#![cfg_attr(not(test), no_std)]
+
 /// Digest length in bytes.
 pub const OUT_LEN: usize = 32;
 /// Sponge rate of Keccak-256 in bytes: `1600 - 2 * 256` bits.
@@ -53,7 +55,7 @@ pub const PI: [usize; 24] = [10, 7, 11, 17, 18, 3, 5, 16, 8, 21, 24, 4, 15, 23, 
 pub fn keccak_f(a: &mut [u64; 25]) {
     for rc in RC {
         // theta
-        let c: [u64; 5] = std::array::from_fn(|x| a[x] ^ a[x + 5] ^ a[x + 10] ^ a[x + 15] ^ a[x + 20]);
+        let c: [u64; 5] = core::array::from_fn(|x| a[x] ^ a[x + 5] ^ a[x + 10] ^ a[x + 15] ^ a[x + 20]);
         for x in 0..5 {
             let d = c[(x + 4) % 5] ^ c[(x + 1) % 5].rotate_left(1);
             for y in 0..5 {
@@ -69,7 +71,7 @@ pub fn keccak_f(a: &mut [u64; 25]) {
         }
         // chi
         for y in 0..5 {
-            let row: [u64; 5] = std::array::from_fn(|x| a[x + 5 * y]);
+            let row: [u64; 5] = core::array::from_fn(|x| a[x + 5 * y]);
             for x in 0..5 {
                 a[x + 5 * y] = row[x] ^ (!row[(x + 1) % 5] & row[(x + 2) % 5]);
             }

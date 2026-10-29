@@ -6,6 +6,8 @@
 //! Hashing `len` bytes costs `(len + 9).div_ceil(64)` compressions: the padding is a `0x80` byte
 //! and the 8-byte bit length, at least 9 bytes.
 
+#![cfg_attr(not(test), no_std)]
+
 /// Digest length in bytes.
 pub const OUT_LEN: usize = 32;
 /// Block length in bytes.

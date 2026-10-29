@@ -9,6 +9,11 @@ description = "The leanSphincs candidate: a two-level WOTS forest under WOTS+C (
 [lints]
 workspace = true
 
+[features]
+default = ["std"]
+# Without it the crate is no_std (it still needs `alloc`), and `compressions` always returns 0.
+std = []
+
 [dependencies]
 keccak.workspace = true
 blake2s.workspace = true

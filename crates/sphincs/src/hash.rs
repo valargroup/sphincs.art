@@ -10,6 +10,7 @@
 //!   per key for the signer, once per verification for the verifier); a call then costs `ceil((n + 9) / 64)` compressions for its `n` bytes after
 //!   that block, the 9 being the padding byte and the length.
 
+#[cfg(feature = "std")]
 use std::cell::Cell;
 
 use crate::*;
@@ -229,18 +230,25 @@ fn start(pp: &Pp, tw: &Tweak) -> Hasher {
     hasher
 }
 
+#[cfg(feature = "std")]
 thread_local! {
     static COMPRESSIONS: Cell<u64> = const { Cell::new(0) };
 }
 
 /// Compressions (Keccak-f permutations for Keccak-256) this thread has spent in [`th`],
-/// [`th_pair`], [`th_digests`], [`Midstate`] and [`Pp::new`].
+/// [`th_pair`], [`th_digests`], [`Midstate`] and [`Pp::new`]. Always 0 without the `std` feature.
 pub fn compressions() -> u64 {
-    COMPRESSIONS.with(Cell::get)
+    #[cfg(feature = "std")]
+    return COMPRESSIONS.with(Cell::get);
+    #[cfg(not(feature = "std"))]
+    0
 }
 
 fn count_blocks(n: u64) {
+    #[cfg(feature = "std")]
     COMPRESSIONS.with(|c| c.set(c.get() + n));
+    #[cfg(not(feature = "std"))]
+    let _ = n;
 }
 
 /// `Th(P, tw, payload)`, untruncated.
@@ -335,7 +343,7 @@ mod tests {
     fn address_layout() {
         let tw = tweak(TWEAK_SUB_NODE, 0x123456, 0x89abcdef).step(5).at(2, 0x0a0b0c0d);
         assert_eq!(address(&tw), [0xef, 0xcd, 0xab, 0x89, 0x56, 0x34, 0x12, 0xb1, 2, 0x0d, 0x0c, 0x0b, 0x0a, 0, 0, 0]);
-        let bytes: PublicParam = std::array::from_fn(|i| i as u8 + 1);
+        let bytes: PublicParam = core::array::from_fn(|i| i as u8 + 1);
         let payload = [9u8; N];
         for hash in HashFn::ALL {
             let pp = Pp::new(hash, bytes);
@@ -366,7 +374,7 @@ mod tests {
     /// not the fixed part ends on a block boundary.
     #[test]
     fn midstate_matches_one_pass() {
-        let bytes: PublicParam = std::array::from_fn(|i| 3 * i as u8);
+        let bytes: PublicParam = core::array::from_fn(|i| 3 * i as u8);
         let tw = tweak(TWEAK_MSG, 1, 0);
         for hash in HashFn::ALL {
             let pp = Pp::new(hash, bytes);
