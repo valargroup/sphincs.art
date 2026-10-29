@@ -13,6 +13,7 @@ mod wots;
 
 pub use crate::{HEIGHTS, OtsKey, PRUNED, Shape, VerifyError};
 use crate::{Tweak, address, codeword_table, layered_heights, tweak};
+use alloc::{boxed::Box, vec, vec::Vec};
 use forest::*;
 use fors::*;
 use hashing::*;

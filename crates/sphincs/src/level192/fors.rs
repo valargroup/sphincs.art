@@ -67,7 +67,7 @@ pub(super) fn fors_sign(
     marks: &[usize; FORS_TREES],
 ) -> (ForsKey, Box<[ForsOpening; FORS_TREES]>) {
     let mut key = [[[0; N]; 2]; FORS_TREES];
-    let openings = std::array::from_fn(|tree| {
+    let openings = core::array::from_fn(|tree| {
         let mark = marks[tree];
         let mut chosen = [0; N];
         let mut leaves = Vec::with_capacity(1 << FORS_HEIGHT);
@@ -97,7 +97,7 @@ pub(super) fn fors_sign(
         key[tree] = [levels[FORS_HEIGHT - 1][0], levels[FORS_HEIGHT - 1][1]];
         ForsOpening {
             secret: chosen,
-            path: std::array::from_fn(|level| levels[level][(mark >> level) ^ 1]),
+            path: core::array::from_fn(|level| levels[level][(mark >> level) ^ 1]),
         }
     });
     (key, Box::new(openings))
@@ -109,7 +109,7 @@ pub(super) fn fors_recover(
     marks: &[usize; FORS_TREES],
     openings: &[ForsOpening; FORS_TREES],
 ) -> ForsKey {
-    std::array::from_fn(|tree| {
+    core::array::from_fn(|tree| {
         let (mark, open) = (marks[tree], &openings[tree]);
         let mut value = fors_leaf(pp, instance, tree, mark, &open.secret);
         for level in 0..FORS_HEIGHT - 1 {

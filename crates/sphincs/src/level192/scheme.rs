@@ -58,39 +58,49 @@ impl Signature {
                 .sum::<usize>()
     }
 
-    /// Writes the existing wire format without allocating a second signature buffer.
-    /// A writer error is returned unchanged; the destination may already contain a partial signature.
-    pub fn write_to<W: std::io::Write + ?Sized>(&self, writer: &mut W) -> std::io::Result<()> {
-        writer.write_all(&self.randomizer)?;
+    /// Passes the wire format to `put` piece by piece, in order.
+    fn for_each_part(&self, mut put: impl FnMut(&[u8])) {
+        put(&self.randomizer);
         match &self.opening {
             Opening::Forest(open) => {
                 for coord in open.iter() {
                     for sub in &coord.sub {
-                        writer.write_all(sub.values.as_flattened())?;
-                        writer.write_all(sub.path.as_flattened())?;
+                        put(sub.values.as_flattened());
+                        put(sub.path.as_flattened());
                     }
-                    writer.write_all(coord.top.as_flattened())?;
+                    put(coord.top.as_flattened());
                 }
             }
             Opening::Fors(open) => {
                 for tree in open.iter() {
-                    writer.write_all(&tree.secret)?;
-                    writer.write_all(tree.path.as_flattened())?;
+                    put(&tree.secret);
+                    put(tree.path.as_flattened());
                 }
             }
         }
         for layer in &self.layers {
-            writer.write_all(&layer.counter.to_le_bytes())?;
-            writer.write_all(layer.wots.as_flattened())?;
-            writer.write_all(layer.path.as_flattened())?;
+            put(&layer.counter.to_le_bytes());
+            put(layer.wots.as_flattened());
+            put(layer.path.as_flattened());
         }
-        Ok(())
+    }
+
+    /// Writes the existing wire format without allocating a second signature buffer.
+    /// A writer error is returned unchanged; the destination may already contain a partial signature.
+    #[cfg(feature = "std")]
+    pub fn write_to<W: std::io::Write + ?Sized>(&self, writer: &mut W) -> std::io::Result<()> {
+        let mut result = Ok(());
+        self.for_each_part(|part| {
+            if result.is_ok() {
+                result = writer.write_all(part);
+            }
+        });
+        result
     }
 
     pub fn to_bytes(&self) -> Vec<u8> {
         let mut out = Vec::with_capacity(self.encoded_len());
-        self.write_to(&mut out)
-            .expect("writing to a Vec cannot fail");
+        self.for_each_part(|part| out.extend_from_slice(part));
         out
     }
     pub fn from_bytes(cfg: &Config, bytes: &[u8]) -> Option<Self> {
@@ -105,16 +115,16 @@ impl Signature {
         };
         let randomizer = take(N).try_into().ok()?;
         let opening = match cfg.variant {
-            Variant::Forest => Opening::Forest(Box::new(std::array::from_fn(|_| CoordOpening {
-                sub: std::array::from_fn(|_| SubOpening {
-                    values: std::array::from_fn(|_| take(N).try_into().unwrap()),
-                    path: std::array::from_fn(|_| take(N).try_into().unwrap()),
+            Variant::Forest => Opening::Forest(Box::new(core::array::from_fn(|_| CoordOpening {
+                sub: core::array::from_fn(|_| SubOpening {
+                    values: core::array::from_fn(|_| take(N).try_into().unwrap()),
+                    path: core::array::from_fn(|_| take(N).try_into().unwrap()),
                 }),
-                top: std::array::from_fn(|_| take(N).try_into().unwrap()),
+                top: core::array::from_fn(|_| take(N).try_into().unwrap()),
             }))),
-            Variant::Fors => Opening::Fors(Box::new(std::array::from_fn(|_| ForsOpening {
+            Variant::Fors => Opening::Fors(Box::new(core::array::from_fn(|_| ForsOpening {
                 secret: take(N).try_into().unwrap(),
-                path: std::array::from_fn(|_| take(N).try_into().unwrap()),
+                path: core::array::from_fn(|_| take(N).try_into().unwrap()),
             }))),
         };
         let layers = cfg
@@ -122,7 +132,7 @@ impl Signature {
             .iter()
             .map(|&height| LayerSignature {
                 counter: u32::from_le_bytes(take(4).try_into().unwrap()),
-                wots: std::array::from_fn(|_| take(N).try_into().unwrap()),
+                wots: core::array::from_fn(|_| take(N).try_into().unwrap()),
                 path: (0..height).map(|_| take(N).try_into().unwrap()).collect(),
             })
             .collect();
@@ -228,23 +238,23 @@ pub(super) fn bits(digest: &[u8], offset: usize, width: usize) -> usize {
     })
 }
 pub(super) fn forest_marks(digest: &[u8; 64], h: usize) -> [CoordMark; COORDS] {
-    std::array::from_fn(|c| {
+    core::array::from_fn(|c| {
         let base = h + c * 26;
         CoordMark {
             super_child: bits(digest, base, 4),
-            child: std::array::from_fn(|j| bits(digest, base + 4 + j * 11, 3)),
-            word: std::array::from_fn(|j| bits(digest, base + 7 + j * 11, 8) as u8),
+            child: core::array::from_fn(|j| bits(digest, base + 4 + j * 11, 3)),
+            word: core::array::from_fn(|j| bits(digest, base + 7 + j * 11, 8) as u8),
         }
     })
 }
 pub(super) fn fors_marks(digest: &[u8; 64], h: usize) -> [usize; FORS_TREES] {
-    std::array::from_fn(|t| bits(digest, h + t * FORS_HEIGHT, FORS_HEIGHT))
+    core::array::from_fn(|t| bits(digest, h + t * FORS_HEIGHT, FORS_HEIGHT))
 }
 
 /// Addition of `i * step` modulo 2^192. The bytewise carry also covers 64-bit attempt indices.
 pub(super) fn randomizer(base: &Randomizer, step: &Randomizer, i: u64) -> Randomizer {
     let mut carry = 0u128;
-    std::array::from_fn(|j| {
+    core::array::from_fn(|j| {
         let sum = u128::from(base[j]) + u128::from(step[j]) * u128::from(i) + carry;
         carry = sum >> 8;
         sum as u8

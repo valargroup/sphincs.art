@@ -207,7 +207,7 @@ pub(super) fn forest_sign(
     let mut opening = Vec::with_capacity(COORDS);
     for (c, mark) in marks.iter().enumerate() {
         let mut open = CoordOpening {
-            sub: std::array::from_fn(|_| SubOpening {
+            sub: core::array::from_fn(|_| SubOpening {
                 values: [[0; N]; CHILD_CHAINS],
                 path: [[0; N]; SUB_HEIGHT],
             }),
@@ -220,13 +220,13 @@ pub(super) fn forest_sign(
                 let mut leaves = [[0; N]; CHILDREN];
                 for (a, leaf) in leaves.iter_mut().enumerate() {
                     let secrets = child_secrets(pp, master, idx, c, s, j, a);
-                    let ends = std::array::from_fn(|i| {
+                    let ends = core::array::from_fn(|i| {
                         forest_chain(pp, idx, c, s, j, a, i, 0, CHAIN_TOP, secrets[i])
                     });
                     *leaf = child_leaf(pp, idx, c, s, j, a, &ends);
                     if s == mark.super_child && a == mark.child[j] {
                         let word = lut(mark.word[j]);
-                        open.sub[j].values = std::array::from_fn(|i| {
+                        open.sub[j].values = core::array::from_fn(|i| {
                             forest_chain(
                                 pp,
                                 idx,
@@ -303,12 +303,12 @@ pub(super) fn forest_recover(
     marks: &[CoordMark; COORDS],
     opening: &ForestOpening,
 ) -> ForestKey {
-    std::array::from_fn(|c| {
+    core::array::from_fn(|c| {
         let (mark, open) = (marks[c], &opening[c]);
         let s = mark.super_child;
-        let tops: [[Digest; 2]; SUBS] = std::array::from_fn(|j| {
+        let tops: [[Digest; 2]; SUBS] = core::array::from_fn(|j| {
             let (a, word) = (mark.child[j], lut(mark.word[j]));
-            let ends = std::array::from_fn(|i| {
+            let ends = core::array::from_fn(|i| {
                 let deficit = word[i] as usize;
                 forest_chain(
                     pp,

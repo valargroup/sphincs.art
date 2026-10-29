@@ -70,7 +70,7 @@ pub(super) fn encode(pp: &Pp, key: &OtsKey, message: &[u8], c: u32) -> Option<[u
 
 /// The 192 digest bits as 96 chunks of 2 bits, little endian; a codeword if they sum to `T`.
 pub(super) fn codeword(digest: &Digest) -> Option<[u8; V]> {
-    let x: [u8; V] = std::array::from_fn(|i| (digest[i / 4] >> (2 * (i % 4))) & 3);
+    let x: [u8; V] = core::array::from_fn(|i| (digest[i / 4] >> (2 * (i % 4))) & 3);
     (x.iter().map(|&c| c as usize).sum::<usize>() == TARGET_SUM).then_some(x)
 }
 
@@ -101,7 +101,7 @@ pub(super) fn wots_recover(
     signature: &[Digest; V],
 ) -> Option<Digest> {
     let x = encode(pp, key, message, c)?;
-    let ends = std::array::from_fn(|i| {
+    let ends = core::array::from_fn(|i| {
         let start = x[i] as usize;
         chain(pp, key, i, start, CHAIN_LEN - 1 - start, signature[i])
     });
