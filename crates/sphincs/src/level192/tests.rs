@@ -1,0 +1,356 @@
+use super::scheme::{
+    bits, digest_midstate, forest_marks, fors_marks, randomizer, sign_with_limits,
+};
+use super::*;
+
+fn config(hash: HashFn, variant: Variant) -> Config {
+    Config::new(hash, 20, Shape::Pruned { b: 8 }, variant)
+}
+fn hex(bytes: &[u8]) -> String {
+    bytes.iter().map(|b| format!("{b:02x}")).collect()
+}
+
+#[test]
+fn configuration_sizes_and_rejections() {
+    for h in HEIGHTS {
+        for hash in HashFn::ALL {
+            for variant in Variant::ALL {
+                for shape in [Shape::Layered, Shape::Pruned { b: h }]
+                    .into_iter()
+                    .chain(PRUNED.into_iter().map(|b| Shape::Pruned { b }))
+                {
+                    let cfg = Config::new(hash, h, shape, variant);
+                    assert_eq!(cfg.layers().iter().sum::<usize>(), h);
+                    let bytes = vec![0; cfg.sig_size()];
+                    assert_eq!(
+                        Signature::from_bytes(&cfg, &bytes).unwrap().to_bytes(),
+                        bytes
+                    );
+                    assert!(Signature::from_bytes(&cfg, &bytes[..bytes.len() - 1]).is_none());
+                    assert!(Signature::from_bytes(&cfg, &[bytes, vec![0]].concat()).is_none());
+                }
+            }
+        }
+    }
+    for (variant, pruned, layered) in [
+        (Variant::Forest, 9244, 13860),
+        (Variant::Fors, 12676, 17292),
+    ] {
+        assert_eq!(
+            Config::new(HashFn::Shake256, 24, Shape::Pruned { b: 12 }, variant).sig_size(),
+            pruned
+        );
+        assert_eq!(
+            Config::new(HashFn::Shake256, 24, Shape::Layered, variant).sig_size(),
+            layered
+        );
+    }
+    for (h, b) in [(19, 8), (30, 12), (20, 21), (22, 11)] {
+        assert!(
+            std::panic::catch_unwind(|| Config::new(
+                HashFn::Sha2,
+                h,
+                Shape::Pruned { b },
+                Variant::Forest
+            ))
+            .is_err()
+        );
+    }
+    assert!(PublicKey::from_bytes(&[0; 47]).is_none());
+    assert!(PublicKey::from_bytes(&[0; 49]).is_none());
+}
+
+#[test]
+fn randomizers_and_digest_fields_cross_word_boundaries() {
+    assert_eq!(randomizer(&[255; N], &[1; N], 1), {
+        let mut x = [1; N];
+        x[0] = 0;
+        x
+    });
+    assert_eq!(randomizer(&[0; N], &[255; N], 5), {
+        let mut x = [255; N];
+        x[0] = 251;
+        x
+    });
+    let mut one = [0; N];
+    one[0] = 1;
+    let mut expected = [0; N];
+    expected[..8].copy_from_slice(&u64::MAX.to_le_bytes());
+    assert_eq!(randomizer(&[0; N], &one, u64::MAX), expected);
+    for h in HEIGHTS {
+        for pos in 0..h + FORS_TREES * FORS_HEIGHT {
+            let mut data = [0; 64];
+            data[pos / 8] = 1 << (pos % 8);
+            assert_eq!(bits(&data, 0, h), if pos < h { 1 << pos } else { 0 });
+            let marks = fors_marks(&data, h);
+            for (t, mark) in marks.iter().enumerate() {
+                assert_eq!(
+                    *mark,
+                    if (h + t * 10..h + (t + 1) * 10).contains(&pos) {
+                        1 << ((pos - h) % 10)
+                    } else {
+                        0
+                    }
+                );
+            }
+            let marks = forest_marks(&data, h);
+            let mut rebuilt = [0; 64];
+            let mut put = |offset: usize, width: usize, value: usize| {
+                for i in 0..width {
+                    rebuilt[(offset + i) / 8] |= (((value >> i) & 1) as u8) << ((offset + i) % 8);
+                }
+            };
+            put(0, h, bits(&data, 0, h));
+            for (c, mark) in marks.iter().enumerate() {
+                put(h + c * 26, 4, mark.super_child);
+                for j in 0..2 {
+                    put(h + c * 26 + 4 + j * 11, 3, mark.child[j]);
+                    put(h + c * 26 + 7 + j * 11, 8, mark.word[j] as usize);
+                }
+            }
+            if pos < h + COORDS * 26 {
+                assert_eq!(rebuilt, data);
+            } else {
+                assert_eq!(rebuilt, [0; 64]);
+            }
+        }
+    }
+}
+
+#[test]
+fn seeds_bind_every_configuration_choice() {
+    let seed = [42; 32];
+    let base = config(HashFn::Shake256, Variant::Forest);
+    let root = configured_seed(&base, &seed);
+    for cfg in [
+        config(HashFn::Sha2, Variant::Forest),
+        config(HashFn::Shake256, Variant::Fors),
+        Config::new(
+            HashFn::Shake256,
+            22,
+            Shape::Pruned { b: 8 },
+            Variant::Forest,
+        ),
+        Config::new(
+            HashFn::Shake256,
+            20,
+            Shape::Pruned { b: 10 },
+            Variant::Forest,
+        ),
+        Config::new(HashFn::Shake256, 20, Shape::Layered, Variant::Forest),
+    ] {
+        assert_ne!(configured_seed(&cfg, &seed), root);
+    }
+    let legacy = crate::Config::new(crate::HashFn::Keccak256, 20, Shape::Pruned { b: 8 });
+    assert_ne!(root, crate::configured_seed(&legacy, &seed));
+}
+
+#[test]
+fn raw_messages_and_tampering() {
+    for hash in HashFn::ALL {
+        for variant in Variant::ALL {
+            let cfg = config(hash, variant);
+            let (sk, pk) = key_gen(&cfg, &[3; 32]);
+            assert_eq!(PublicKey::from_bytes(&pk.to_bytes()), Some(pk));
+            for message in [vec![], vec![0; 32], vec![0; 64], vec![7; 137], vec![8; 257]] {
+                let sig = sign(&sk, &message).unwrap();
+                assert_eq!(sig, sign(&sk, &message).unwrap());
+                let before = hash_counts();
+                assert_eq!(verify(&cfg, &pk, &message, &sig), Ok(()));
+                assert_eq!(hash_counts() - before, cfg.verify_counts(message.len()));
+                let bytes = sig.to_bytes();
+                assert_eq!(bytes.len(), cfg.sig_size());
+                assert_eq!(Signature::from_bytes(&cfg, &bytes).unwrap(), sig);
+                let mut wrong = message.clone();
+                wrong.push(0);
+                assert!(verify(&cfg, &pk, &wrong, &sig).is_err());
+                for offset in [
+                    0,
+                    N,
+                    N + N * 11,
+                    N + variant.opening_values() * N,
+                    bytes.len() - 1,
+                ] {
+                    let mut damaged = bytes.clone();
+                    damaged[offset] ^= 1;
+                    let parsed = Signature::from_bytes(&cfg, &damaged).unwrap();
+                    assert!(
+                        verify(&cfg, &pk, &message, &parsed).is_err(),
+                        "changed byte {offset}"
+                    );
+                }
+                let mut other = pk;
+                other.root[0] ^= 1;
+                assert!(verify(&cfg, &other, &message, &sig).is_err());
+                other = pk;
+                other.public_param[0] ^= 1;
+                assert!(verify(&cfg, &other, &message, &sig).is_err());
+                for other in HashFn::ALL.into_iter().filter(|&x| x != hash) {
+                    assert!(verify(&config(other, variant), &pk, &message, &sig).is_err());
+                }
+                let other = if variant == Variant::Fors {
+                    Variant::Forest
+                } else {
+                    Variant::Fors
+                };
+                assert_eq!(
+                    verify(&config(hash, other), &pk, &message, &sig),
+                    Err(VerifyError::Malformed)
+                );
+            }
+            assert_eq!(
+                sign_with_limits(&sk, b"message", 0, 0),
+                Err(SignError::RandomizerExhausted)
+            );
+            assert_eq!(
+                sign_with_limits(&sk, b"message", MAX_ENCODING_ATTEMPTS, 0),
+                Err(SignError::EncodingExhausted)
+            );
+        }
+    }
+}
+
+/// This matrix constructs the real trees and crosses both variants with both backends and every height.
+#[test]
+fn every_height_and_shape_signs_and_verifies() {
+    for hash in HashFn::ALL {
+        for variant in Variant::ALL {
+            for h in HEIGHTS {
+                for shape in [Shape::Pruned { b: (h / 2).max(12) }, Shape::Layered] {
+                    let cfg = Config::new(hash, h, shape, variant);
+                    let (sk, pk) = key_gen(&cfg, &[h as u8; 32]);
+                    let sig = sign(&sk, b"full configuration matrix").unwrap();
+                    let before = hash_counts();
+                    assert_eq!(
+                        verify(&cfg, &pk, b"full configuration matrix", &sig),
+                        Ok(())
+                    );
+                    assert_eq!(hash_counts() - before, cfg.verify_counts(25), "{cfg:?}");
+                    assert_eq!(sig.to_bytes().len(), cfg.sig_size());
+                    for layer in 0..sig.layers.len() {
+                        let mut bad = sig.clone();
+                        bad.layers[layer].wots[V - 1][N - 1] ^= 1;
+                        assert!(verify(&cfg, &pk, b"full configuration matrix", &bad).is_err());
+                        let mut bad = sig.clone();
+                        bad.layers[layer].path[0][0] ^= 1;
+                        assert!(verify(&cfg, &pk, b"full configuration matrix", &bad).is_err());
+                    }
+                    assert!(
+                        verify(
+                            &Config::new(hash, if h == 20 { 22 } else { 20 }, shape, variant),
+                            &pk,
+                            b"full configuration matrix",
+                            &sig
+                        )
+                        .is_err()
+                    );
+                }
+            }
+        }
+    }
+}
+
+#[test]
+fn fors_addresses_are_injective() {
+    let mut addresses = std::collections::HashSet::new();
+    for tree in 0..FORS_TREES {
+        for pair in 0..1 << (FORS_HEIGHT - 1) {
+            for side in 0..2 {
+                assert!(addresses.insert(address(
+                    &fors_secret_tweak((1 << 28) - 1, tree, pair).step(side)
+                )));
+            }
+        }
+        for leaf in 0..1 << FORS_HEIGHT {
+            assert!(addresses.insert(address(&tweak(
+                TWEAK_FORS_LEAF,
+                ((tree << FORS_HEIGHT) + leaf) as u32,
+                (1 << 28) - 1
+            ))));
+        }
+        for level in 0..FORS_HEIGHT - 1 {
+            for node in 0..1 << (FORS_HEIGHT - level - 1) {
+                assert!(addresses.insert(address(&fors_node_tweak(
+                    (1 << 28) - 1,
+                    tree,
+                    level,
+                    node
+                ))));
+            }
+        }
+    }
+}
+
+#[test]
+fn public_key_and_randomizer_binding_are_explicit() {
+    let cfg = config(HashFn::Sha2, Variant::Fors);
+    let pp = Pp::new(&cfg, [3; N]);
+    let pk = PublicKey {
+        root: [4; N],
+        public_param: [3; N],
+    };
+    let a = digest_midstate(&pp, &pk, b"x").finish::<64>(&[0; N]);
+    assert_ne!(a, digest_midstate(&pp, &pk, b"x\0").finish::<64>(&[0; N]));
+    assert_ne!(
+        a,
+        digest_midstate(&pp, &PublicKey { root: [5; N], ..pk }, b"x").finish::<64>(&[0; N])
+    );
+}
+
+#[test]
+fn hashes_match_independent_python_vectors() {
+    for line in include_str!("hash_vectors.txt")
+        .lines()
+        .filter(|line| !line.starts_with('#'))
+    {
+        let fields: Vec<_> = line.split_whitespace().collect();
+        if fields.is_empty() {
+            continue;
+        }
+        let hash = if fields[0] == "SHA2" {
+            HashFn::Sha2
+        } else {
+            HashFn::Shake256
+        };
+        let pp = Pp::new(&config(hash, Variant::Forest), [3; N]);
+        let got = match fields[1] {
+            "chain" => th(&pp, &tweak(TWEAK_CHAIN, 7, 11).step(2).at(1, 3), &[9; N]).to_vec(),
+            "node" => th_digests(&pp, &tweak(TWEAK_NODE, 2, 3), &[[4; N], [5; N]]).to_vec(),
+            "pair" => th_pair(&pp, &tweak(TWEAK_PRF, 3, 7), &[11; 32])
+                .as_flattened()
+                .to_vec(),
+            "randomizer" => randomizer_material(&pp, &[13; 32], b"raw message\0bytes").to_vec(),
+            _ => panic!("unknown vector"),
+        };
+        assert_eq!(hex(&got), fields[2], "{} {}", fields[0], fields[1]);
+    }
+}
+
+#[test]
+fn signatures_match_independently_verified_vectors() {
+    use sha2::{Digest as _, Sha512};
+    for line in include_str!("signature_vectors.txt")
+        .lines()
+        .filter(|line| !line.starts_with('#'))
+    {
+        let fields: Vec<_> = line.split_whitespace().collect();
+        if fields.is_empty() {
+            continue;
+        }
+        let hash = if fields[0] == "SHA2" {
+            HashFn::Sha2
+        } else {
+            HashFn::Shake256
+        };
+        let variant = if fields[1] == "fors" {
+            Variant::Fors
+        } else {
+            Variant::Forest
+        };
+        let cfg = config(hash, variant);
+        let (sk, pk) = key_gen(&cfg, &[3; 32]);
+        let sig = sign(&sk, b"independent 192-bit reference\0message").unwrap();
+        assert_eq!(hex(&pk.to_bytes()), fields[2]);
+        assert_eq!(hex(&Sha512::digest(sig.to_bytes())), fields[3]);
+    }
+}

@@ -20,6 +20,9 @@ pub use forest::*;
 mod scheme;
 pub use scheme::*;
 
+/// Experimental Category 3-targeted configurations; no Lean or quantum security proof is claimed.
+pub mod level192;
+
 /// `n`: hash value and Merkle node length, in bytes.
 pub const N: usize = 16;
 pub type Digest = [u8; N];

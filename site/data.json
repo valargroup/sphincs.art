@@ -6677,5 +6677,4268 @@
    "BLAKE2s": 1251034622.1708245,
    "SHA-256": 1251034622.1708245
   }
+ },
+ "level192": {
+  "status": "experimental",
+  "message_bytes": 32,
+  "cover_threshold_bits": 192,
+  "classical_screening_convention_bits": 191,
+  "precision_digits": 100,
+  "max_hits": 320,
+  "max_child_hits": 96,
+  "configs": [
+   {
+    "hash": "SHAKE256",
+    "variant": "forest",
+    "h": 20,
+    "shape": "pruned",
+    "b": 8,
+    "layers": [
+     20
+    ],
+    "size": 9148,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 427
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 90905
+    },
+    "cover_model_signatures": 6341,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "forest",
+    "h": 20,
+    "shape": "pruned",
+    "b": 8,
+    "layers": [
+     20
+    ],
+    "size": 9148,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 452,
+     "sha512": 203,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 196608,
+     "sha512": 5145,
+     "keccak": 0
+    },
+    "cover_model_signatures": 6341,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHAKE256",
+    "variant": "fors",
+    "h": 20,
+    "shape": "pruned",
+    "b": 8,
+    "layers": [
+     20
+    ],
+    "size": 12580,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 530
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 90905
+    },
+    "cover_model_signatures": 5878,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "fors",
+    "h": 20,
+    "shape": "pruned",
+    "b": 8,
+    "layers": [
+     20
+    ],
+    "size": 12580,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 286,
+     "sha512": 389,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 196608,
+     "sha512": 5145,
+     "keccak": 0
+    },
+    "cover_model_signatures": 5878,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHAKE256",
+    "variant": "forest",
+    "h": 20,
+    "shape": "pruned",
+    "b": 10,
+    "layers": [
+     20
+    ],
+    "size": 9148,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 427
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 363541
+    },
+    "cover_model_signatures": 23964,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "forest",
+    "h": 20,
+    "shape": "pruned",
+    "b": 10,
+    "layers": [
+     20
+    ],
+    "size": 9148,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 452,
+     "sha512": 203,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 786432,
+     "sha512": 20501,
+     "keccak": 0
+    },
+    "cover_model_signatures": 23964,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHAKE256",
+    "variant": "fors",
+    "h": 20,
+    "shape": "pruned",
+    "b": 10,
+    "layers": [
+     20
+    ],
+    "size": 12580,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 530
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 363541
+    },
+    "cover_model_signatures": 22233,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "fors",
+    "h": 20,
+    "shape": "pruned",
+    "b": 10,
+    "layers": [
+     20
+    ],
+    "size": 12580,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 286,
+     "sha512": 389,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 786432,
+     "sha512": 20501,
+     "keccak": 0
+    },
+    "cover_model_signatures": 22233,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHAKE256",
+    "variant": "forest",
+    "h": 20,
+    "shape": "pruned",
+    "b": 12,
+    "layers": [
+     20
+    ],
+    "size": 9148,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 427
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 1454097
+    },
+    "cover_model_signatures": 90580,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "forest",
+    "h": 20,
+    "shape": "pruned",
+    "b": 12,
+    "layers": [
+     20
+    ],
+    "size": 9148,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 452,
+     "sha512": 203,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 3145728,
+     "sha512": 81937,
+     "keccak": 0
+    },
+    "cover_model_signatures": 90580,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHAKE256",
+    "variant": "fors",
+    "h": 20,
+    "shape": "pruned",
+    "b": 12,
+    "layers": [
+     20
+    ],
+    "size": 12580,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 530
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 1454097
+    },
+    "cover_model_signatures": 84140,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "fors",
+    "h": 20,
+    "shape": "pruned",
+    "b": 12,
+    "layers": [
+     20
+    ],
+    "size": 12580,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 286,
+     "sha512": 389,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 3145728,
+     "sha512": 81937,
+     "keccak": 0
+    },
+    "cover_model_signatures": 84140,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHAKE256",
+    "variant": "forest",
+    "h": 20,
+    "shape": "pruned",
+    "b": 13,
+    "layers": [
+     20
+    ],
+    "size": 9148,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 427
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 2908175
+    },
+    "cover_model_signatures": 176069,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "forest",
+    "h": 20,
+    "shape": "pruned",
+    "b": 13,
+    "layers": [
+     20
+    ],
+    "size": 9148,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 452,
+     "sha512": 203,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 6291456,
+     "sha512": 163855,
+     "keccak": 0
+    },
+    "cover_model_signatures": 176069,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHAKE256",
+    "variant": "fors",
+    "h": 20,
+    "shape": "pruned",
+    "b": 13,
+    "layers": [
+     20
+    ],
+    "size": 12580,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 530
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 2908175
+    },
+    "cover_model_signatures": 163670,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "fors",
+    "h": 20,
+    "shape": "pruned",
+    "b": 13,
+    "layers": [
+     20
+    ],
+    "size": 12580,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 286,
+     "sha512": 389,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 6291456,
+     "sha512": 163855,
+     "keccak": 0
+    },
+    "cover_model_signatures": 163670,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHAKE256",
+    "variant": "forest",
+    "h": 20,
+    "shape": "pruned",
+    "b": 14,
+    "layers": [
+     20
+    ],
+    "size": 9148,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 427
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 5816333
+    },
+    "cover_model_signatures": 342182,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "forest",
+    "h": 20,
+    "shape": "pruned",
+    "b": 14,
+    "layers": [
+     20
+    ],
+    "size": 9148,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 452,
+     "sha512": 203,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 12582912,
+     "sha512": 327693,
+     "keccak": 0
+    },
+    "cover_model_signatures": 342182,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHAKE256",
+    "variant": "fors",
+    "h": 20,
+    "shape": "pruned",
+    "b": 14,
+    "layers": [
+     20
+    ],
+    "size": 12580,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 530
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 5816333
+    },
+    "cover_model_signatures": 318340,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "fors",
+    "h": 20,
+    "shape": "pruned",
+    "b": 14,
+    "layers": [
+     20
+    ],
+    "size": 12580,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 286,
+     "sha512": 389,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 12582912,
+     "sha512": 327693,
+     "keccak": 0
+    },
+    "cover_model_signatures": 318340,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHAKE256",
+    "variant": "forest",
+    "h": 20,
+    "shape": "pruned",
+    "b": 20,
+    "layers": [
+     20
+    ],
+    "size": 9148,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 427
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 372244481
+    },
+    "cover_model_signatures": 18353482,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "forest",
+    "h": 20,
+    "shape": "pruned",
+    "b": 20,
+    "layers": [
+     20
+    ],
+    "size": 9148,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 452,
+     "sha512": 203,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 805306368,
+     "sha512": 20971521,
+     "keccak": 0
+    },
+    "cover_model_signatures": 18353482,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHAKE256",
+    "variant": "fors",
+    "h": 20,
+    "shape": "pruned",
+    "b": 20,
+    "layers": [
+     20
+    ],
+    "size": 12580,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 530
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 372244481
+    },
+    "cover_model_signatures": 17184963,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "fors",
+    "h": 20,
+    "shape": "pruned",
+    "b": 20,
+    "layers": [
+     20
+    ],
+    "size": 12580,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 286,
+     "sha512": 389,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 805306368,
+     "sha512": 20971521,
+     "keccak": 0
+    },
+    "cover_model_signatures": 17184963,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHAKE256",
+    "variant": "forest",
+    "h": 20,
+    "shape": "layered",
+    "b": 20,
+    "layers": [
+     8,
+     6,
+     6
+    ],
+    "size": 13764,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 677
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 90881
+    },
+    "cover_model_signatures": 18353482,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "forest",
+    "h": 20,
+    "shape": "layered",
+    "b": 20,
+    "layers": [
+     8,
+     6,
+     6
+    ],
+    "size": 13764,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 876,
+     "sha512": 243,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 196608,
+     "sha512": 5121,
+     "keccak": 0
+    },
+    "cover_model_signatures": 18353482,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHAKE256",
+    "variant": "fors",
+    "h": 20,
+    "shape": "layered",
+    "b": 20,
+    "layers": [
+     8,
+     6,
+     6
+    ],
+    "size": 17196,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 780
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 90881
+    },
+    "cover_model_signatures": 17184963,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "fors",
+    "h": 20,
+    "shape": "layered",
+    "b": 20,
+    "layers": [
+     8,
+     6,
+     6
+    ],
+    "size": 17196,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 710,
+     "sha512": 429,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 196608,
+     "sha512": 5121,
+     "keccak": 0
+    },
+    "cover_model_signatures": 17184963,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHAKE256",
+    "variant": "forest",
+    "h": 22,
+    "shape": "pruned",
+    "b": 8,
+    "layers": [
+     22
+    ],
+    "size": 9196,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 429
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 90909
+    },
+    "cover_model_signatures": 6697,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "forest",
+    "h": 22,
+    "shape": "pruned",
+    "b": 8,
+    "layers": [
+     22
+    ],
+    "size": 9196,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 452,
+     "sha512": 205,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 196608,
+     "sha512": 5149,
+     "keccak": 0
+    },
+    "cover_model_signatures": 6697,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHAKE256",
+    "variant": "fors",
+    "h": 22,
+    "shape": "pruned",
+    "b": 8,
+    "layers": [
+     22
+    ],
+    "size": 12628,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 532
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 90909
+    },
+    "cover_model_signatures": 6203,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "fors",
+    "h": 22,
+    "shape": "pruned",
+    "b": 8,
+    "layers": [
+     22
+    ],
+    "size": 12628,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 286,
+     "sha512": 391,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 196608,
+     "sha512": 5149,
+     "keccak": 0
+    },
+    "cover_model_signatures": 6203,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHAKE256",
+    "variant": "forest",
+    "h": 22,
+    "shape": "pruned",
+    "b": 10,
+    "layers": [
+     22
+    ],
+    "size": 9196,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 429
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 363545
+    },
+    "cover_model_signatures": 25330,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "forest",
+    "h": 22,
+    "shape": "pruned",
+    "b": 10,
+    "layers": [
+     22
+    ],
+    "size": 9196,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 452,
+     "sha512": 205,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 786432,
+     "sha512": 20505,
+     "keccak": 0
+    },
+    "cover_model_signatures": 25330,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHAKE256",
+    "variant": "fors",
+    "h": 22,
+    "shape": "pruned",
+    "b": 10,
+    "layers": [
+     22
+    ],
+    "size": 12628,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 532
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 363545
+    },
+    "cover_model_signatures": 23477,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "fors",
+    "h": 22,
+    "shape": "pruned",
+    "b": 10,
+    "layers": [
+     22
+    ],
+    "size": 12628,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 286,
+     "sha512": 391,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 786432,
+     "sha512": 20505,
+     "keccak": 0
+    },
+    "cover_model_signatures": 23477,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHAKE256",
+    "variant": "forest",
+    "h": 22,
+    "shape": "pruned",
+    "b": 12,
+    "layers": [
+     22
+    ],
+    "size": 9196,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 429
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 1454101
+    },
+    "cover_model_signatures": 95822,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "forest",
+    "h": 22,
+    "shape": "pruned",
+    "b": 12,
+    "layers": [
+     22
+    ],
+    "size": 9196,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 452,
+     "sha512": 205,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 3145728,
+     "sha512": 81941,
+     "keccak": 0
+    },
+    "cover_model_signatures": 95822,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHAKE256",
+    "variant": "fors",
+    "h": 22,
+    "shape": "pruned",
+    "b": 12,
+    "layers": [
+     22
+    ],
+    "size": 12628,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 532
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 1454101
+    },
+    "cover_model_signatures": 88896,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "fors",
+    "h": 22,
+    "shape": "pruned",
+    "b": 12,
+    "layers": [
+     22
+    ],
+    "size": 12628,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 286,
+     "sha512": 391,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 3145728,
+     "sha512": 81941,
+     "keccak": 0
+    },
+    "cover_model_signatures": 88896,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHAKE256",
+    "variant": "forest",
+    "h": 22,
+    "shape": "pruned",
+    "b": 13,
+    "layers": [
+     22
+    ],
+    "size": 9196,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 429
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 2908179
+    },
+    "cover_model_signatures": 186335,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "forest",
+    "h": 22,
+    "shape": "pruned",
+    "b": 13,
+    "layers": [
+     22
+    ],
+    "size": 9196,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 452,
+     "sha512": 205,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 6291456,
+     "sha512": 163859,
+     "keccak": 0
+    },
+    "cover_model_signatures": 186335,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHAKE256",
+    "variant": "fors",
+    "h": 22,
+    "shape": "pruned",
+    "b": 13,
+    "layers": [
+     22
+    ],
+    "size": 12628,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 532
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 2908179
+    },
+    "cover_model_signatures": 172970,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "fors",
+    "h": 22,
+    "shape": "pruned",
+    "b": 13,
+    "layers": [
+     22
+    ],
+    "size": 12628,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 286,
+     "sha512": 391,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 6291456,
+     "sha512": 163859,
+     "keccak": 0
+    },
+    "cover_model_signatures": 172970,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHAKE256",
+    "variant": "forest",
+    "h": 22,
+    "shape": "pruned",
+    "b": 14,
+    "layers": [
+     22
+    ],
+    "size": 9196,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 429
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 5816337
+    },
+    "cover_model_signatures": 362286,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "forest",
+    "h": 22,
+    "shape": "pruned",
+    "b": 14,
+    "layers": [
+     22
+    ],
+    "size": 9196,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 452,
+     "sha512": 205,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 12582912,
+     "sha512": 327697,
+     "keccak": 0
+    },
+    "cover_model_signatures": 362286,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHAKE256",
+    "variant": "fors",
+    "h": 22,
+    "shape": "pruned",
+    "b": 14,
+    "layers": [
+     22
+    ],
+    "size": 12628,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 532
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 5816337
+    },
+    "cover_model_signatures": 336524,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "fors",
+    "h": 22,
+    "shape": "pruned",
+    "b": 14,
+    "layers": [
+     22
+    ],
+    "size": 12628,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 286,
+     "sha512": 391,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 12582912,
+     "sha512": 327697,
+     "keccak": 0
+    },
+    "cover_model_signatures": 336524,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHAKE256",
+    "variant": "forest",
+    "h": 22,
+    "shape": "pruned",
+    "b": 20,
+    "layers": [
+     22
+    ],
+    "size": 9196,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 429
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 372244485
+    },
+    "cover_model_signatures": 19484512,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "forest",
+    "h": 22,
+    "shape": "pruned",
+    "b": 20,
+    "layers": [
+     22
+    ],
+    "size": 9196,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 452,
+     "sha512": 205,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 805306368,
+     "sha512": 20971525,
+     "keccak": 0
+    },
+    "cover_model_signatures": 19484512,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHAKE256",
+    "variant": "fors",
+    "h": 22,
+    "shape": "pruned",
+    "b": 20,
+    "layers": [
+     22
+    ],
+    "size": 12628,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 532
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 372244485
+    },
+    "cover_model_signatures": 18199074,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "fors",
+    "h": 22,
+    "shape": "pruned",
+    "b": 20,
+    "layers": [
+     22
+    ],
+    "size": 12628,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 286,
+     "sha512": 391,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 805306368,
+     "sha512": 20971525,
+     "keccak": 0
+    },
+    "cover_model_signatures": 18199074,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHAKE256",
+    "variant": "forest",
+    "h": 22,
+    "shape": "pruned",
+    "b": 22,
+    "layers": [
+     22
+    ],
+    "size": 9196,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 429
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 1488977921
+    },
+    "cover_model_signatures": 73413896,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "forest",
+    "h": 22,
+    "shape": "pruned",
+    "b": 22,
+    "layers": [
+     22
+    ],
+    "size": 9196,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 452,
+     "sha512": 205,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 3221225472,
+     "sha512": 83886081,
+     "keccak": 0
+    },
+    "cover_model_signatures": 73413896,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHAKE256",
+    "variant": "fors",
+    "h": 22,
+    "shape": "pruned",
+    "b": 22,
+    "layers": [
+     22
+    ],
+    "size": 12628,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 532
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 1488977921
+    },
+    "cover_model_signatures": 68739818,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "fors",
+    "h": 22,
+    "shape": "pruned",
+    "b": 22,
+    "layers": [
+     22
+    ],
+    "size": 12628,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 286,
+     "sha512": 391,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 3221225472,
+     "sha512": 83886081,
+     "keccak": 0
+    },
+    "cover_model_signatures": 68739818,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHAKE256",
+    "variant": "forest",
+    "h": 22,
+    "shape": "layered",
+    "b": 22,
+    "layers": [
+     10,
+     6,
+     6
+    ],
+    "size": 13812,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 679
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 363521
+    },
+    "cover_model_signatures": 73413896,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "forest",
+    "h": 22,
+    "shape": "layered",
+    "b": 22,
+    "layers": [
+     10,
+     6,
+     6
+    ],
+    "size": 13812,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 876,
+     "sha512": 245,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 786432,
+     "sha512": 20481,
+     "keccak": 0
+    },
+    "cover_model_signatures": 73413896,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHAKE256",
+    "variant": "fors",
+    "h": 22,
+    "shape": "layered",
+    "b": 22,
+    "layers": [
+     10,
+     6,
+     6
+    ],
+    "size": 17244,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 782
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 363521
+    },
+    "cover_model_signatures": 68739818,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "fors",
+    "h": 22,
+    "shape": "layered",
+    "b": 22,
+    "layers": [
+     10,
+     6,
+     6
+    ],
+    "size": 17244,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 710,
+     "sha512": 431,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 786432,
+     "sha512": 20481,
+     "keccak": 0
+    },
+    "cover_model_signatures": 68739818,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHAKE256",
+    "variant": "forest",
+    "h": 24,
+    "shape": "pruned",
+    "b": 8,
+    "layers": [
+     24
+    ],
+    "size": 9244,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 431
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 90913
+    },
+    "cover_model_signatures": 7068,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "forest",
+    "h": 24,
+    "shape": "pruned",
+    "b": 8,
+    "layers": [
+     24
+    ],
+    "size": 9244,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 452,
+     "sha512": 207,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 196608,
+     "sha512": 5153,
+     "keccak": 0
+    },
+    "cover_model_signatures": 7068,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHAKE256",
+    "variant": "fors",
+    "h": 24,
+    "shape": "pruned",
+    "b": 8,
+    "layers": [
+     24
+    ],
+    "size": 12676,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 534
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 90913
+    },
+    "cover_model_signatures": 6543,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "fors",
+    "h": 24,
+    "shape": "pruned",
+    "b": 8,
+    "layers": [
+     24
+    ],
+    "size": 12676,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 286,
+     "sha512": 393,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 196608,
+     "sha512": 5153,
+     "keccak": 0
+    },
+    "cover_model_signatures": 6543,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHAKE256",
+    "variant": "forest",
+    "h": 24,
+    "shape": "pruned",
+    "b": 10,
+    "layers": [
+     24
+    ],
+    "size": 9244,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 431
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 363549
+    },
+    "cover_model_signatures": 26754,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "forest",
+    "h": 24,
+    "shape": "pruned",
+    "b": 10,
+    "layers": [
+     24
+    ],
+    "size": 9244,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 452,
+     "sha512": 207,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 786432,
+     "sha512": 20509,
+     "keccak": 0
+    },
+    "cover_model_signatures": 26754,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHAKE256",
+    "variant": "fors",
+    "h": 24,
+    "shape": "pruned",
+    "b": 10,
+    "layers": [
+     24
+    ],
+    "size": 12676,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 534
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 363549
+    },
+    "cover_model_signatures": 24777,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "fors",
+    "h": 24,
+    "shape": "pruned",
+    "b": 10,
+    "layers": [
+     24
+    ],
+    "size": 12676,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 286,
+     "sha512": 393,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 786432,
+     "sha512": 20509,
+     "keccak": 0
+    },
+    "cover_model_signatures": 24777,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHAKE256",
+    "variant": "forest",
+    "h": 24,
+    "shape": "pruned",
+    "b": 12,
+    "layers": [
+     24
+    ],
+    "size": 9244,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 431
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 1454105
+    },
+    "cover_model_signatures": 101286,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "forest",
+    "h": 24,
+    "shape": "pruned",
+    "b": 12,
+    "layers": [
+     24
+    ],
+    "size": 9244,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 452,
+     "sha512": 207,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 3145728,
+     "sha512": 81945,
+     "keccak": 0
+    },
+    "cover_model_signatures": 101286,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHAKE256",
+    "variant": "fors",
+    "h": 24,
+    "shape": "pruned",
+    "b": 12,
+    "layers": [
+     24
+    ],
+    "size": 12676,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 534
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 1454105
+    },
+    "cover_model_signatures": 93871,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "fors",
+    "h": 24,
+    "shape": "pruned",
+    "b": 12,
+    "layers": [
+     24
+    ],
+    "size": 12676,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 286,
+     "sha512": 393,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 3145728,
+     "sha512": 81945,
+     "keccak": 0
+    },
+    "cover_model_signatures": 93871,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHAKE256",
+    "variant": "forest",
+    "h": 24,
+    "shape": "pruned",
+    "b": 13,
+    "layers": [
+     24
+    ],
+    "size": 9244,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 431
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 2908183
+    },
+    "cover_model_signatures": 197039,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "forest",
+    "h": 24,
+    "shape": "pruned",
+    "b": 13,
+    "layers": [
+     24
+    ],
+    "size": 9244,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 452,
+     "sha512": 207,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 6291456,
+     "sha512": 163863,
+     "keccak": 0
+    },
+    "cover_model_signatures": 197039,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHAKE256",
+    "variant": "fors",
+    "h": 24,
+    "shape": "pruned",
+    "b": 13,
+    "layers": [
+     24
+    ],
+    "size": 12676,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 534
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 2908183
+    },
+    "cover_model_signatures": 182700,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "fors",
+    "h": 24,
+    "shape": "pruned",
+    "b": 13,
+    "layers": [
+     24
+    ],
+    "size": 12676,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 286,
+     "sha512": 393,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 6291456,
+     "sha512": 163863,
+     "keccak": 0
+    },
+    "cover_model_signatures": 182700,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHAKE256",
+    "variant": "forest",
+    "h": 24,
+    "shape": "pruned",
+    "b": 14,
+    "layers": [
+     24
+    ],
+    "size": 9244,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 431
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 5816341
+    },
+    "cover_model_signatures": 383252,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "forest",
+    "h": 24,
+    "shape": "pruned",
+    "b": 14,
+    "layers": [
+     24
+    ],
+    "size": 9244,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 452,
+     "sha512": 207,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 12582912,
+     "sha512": 327701,
+     "keccak": 0
+    },
+    "cover_model_signatures": 383252,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHAKE256",
+    "variant": "fors",
+    "h": 24,
+    "shape": "pruned",
+    "b": 14,
+    "layers": [
+     24
+    ],
+    "size": 12676,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 534
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 5816341
+    },
+    "cover_model_signatures": 355549,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "fors",
+    "h": 24,
+    "shape": "pruned",
+    "b": 14,
+    "layers": [
+     24
+    ],
+    "size": 12676,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 286,
+     "sha512": 393,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 12582912,
+     "sha512": 327701,
+     "keccak": 0
+    },
+    "cover_model_signatures": 355549,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHAKE256",
+    "variant": "forest",
+    "h": 24,
+    "shape": "pruned",
+    "b": 20,
+    "layers": [
+     24
+    ],
+    "size": 9244,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 431
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 372244489
+    },
+    "cover_model_signatures": 20665798,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "forest",
+    "h": 24,
+    "shape": "pruned",
+    "b": 20,
+    "layers": [
+     24
+    ],
+    "size": 9244,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 452,
+     "sha512": 207,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 805306368,
+     "sha512": 20971529,
+     "keccak": 0
+    },
+    "cover_model_signatures": 20665798,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHAKE256",
+    "variant": "fors",
+    "h": 24,
+    "shape": "pruned",
+    "b": 20,
+    "layers": [
+     24
+    ],
+    "size": 12676,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 534
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 372244489
+    },
+    "cover_model_signatures": 19261141,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "fors",
+    "h": 24,
+    "shape": "pruned",
+    "b": 20,
+    "layers": [
+     24
+    ],
+    "size": 12676,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 286,
+     "sha512": 393,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 805306368,
+     "sha512": 20971529,
+     "keccak": 0
+    },
+    "cover_model_signatures": 19261141,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHAKE256",
+    "variant": "forest",
+    "h": 24,
+    "shape": "pruned",
+    "b": 24,
+    "layers": [
+     24
+    ],
+    "size": 9244,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 431
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 5955911681
+    },
+    "cover_model_signatures": 293655552,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "forest",
+    "h": 24,
+    "shape": "pruned",
+    "b": 24,
+    "layers": [
+     24
+    ],
+    "size": 9244,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 452,
+     "sha512": 207,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 12884901888,
+     "sha512": 335544321,
+     "keccak": 0
+    },
+    "cover_model_signatures": 293655552,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHAKE256",
+    "variant": "fors",
+    "h": 24,
+    "shape": "pruned",
+    "b": 24,
+    "layers": [
+     24
+    ],
+    "size": 12676,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 534
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 5955911681
+    },
+    "cover_model_signatures": 274959241,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "fors",
+    "h": 24,
+    "shape": "pruned",
+    "b": 24,
+    "layers": [
+     24
+    ],
+    "size": 12676,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 286,
+     "sha512": 393,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 12884901888,
+     "sha512": 335544321,
+     "keccak": 0
+    },
+    "cover_model_signatures": 274959241,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHAKE256",
+    "variant": "forest",
+    "h": 24,
+    "shape": "layered",
+    "b": 24,
+    "layers": [
+     10,
+     7,
+     7
+    ],
+    "size": 13860,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 681
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 363521
+    },
+    "cover_model_signatures": 293655552,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "forest",
+    "h": 24,
+    "shape": "layered",
+    "b": 24,
+    "layers": [
+     10,
+     7,
+     7
+    ],
+    "size": 13860,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 876,
+     "sha512": 247,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 786432,
+     "sha512": 20481,
+     "keccak": 0
+    },
+    "cover_model_signatures": 293655552,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHAKE256",
+    "variant": "fors",
+    "h": 24,
+    "shape": "layered",
+    "b": 24,
+    "layers": [
+     10,
+     7,
+     7
+    ],
+    "size": 17292,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 784
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 363521
+    },
+    "cover_model_signatures": 274959241,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "fors",
+    "h": 24,
+    "shape": "layered",
+    "b": 24,
+    "layers": [
+     10,
+     7,
+     7
+    ],
+    "size": 17292,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 710,
+     "sha512": 433,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 786432,
+     "sha512": 20481,
+     "keccak": 0
+    },
+    "cover_model_signatures": 274959241,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHAKE256",
+    "variant": "forest",
+    "h": 26,
+    "shape": "pruned",
+    "b": 8,
+    "layers": [
+     26
+    ],
+    "size": 9292,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 433
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 90917
+    },
+    "cover_model_signatures": 7454,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "forest",
+    "h": 26,
+    "shape": "pruned",
+    "b": 8,
+    "layers": [
+     26
+    ],
+    "size": 9292,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 452,
+     "sha512": 209,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 196608,
+     "sha512": 5157,
+     "keccak": 0
+    },
+    "cover_model_signatures": 7454,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHAKE256",
+    "variant": "fors",
+    "h": 26,
+    "shape": "pruned",
+    "b": 8,
+    "layers": [
+     26
+    ],
+    "size": 12724,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 536
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 90917
+    },
+    "cover_model_signatures": 6899,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "fors",
+    "h": 26,
+    "shape": "pruned",
+    "b": 8,
+    "layers": [
+     26
+    ],
+    "size": 12724,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 286,
+     "sha512": 395,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 196608,
+     "sha512": 5157,
+     "keccak": 0
+    },
+    "cover_model_signatures": 6899,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHAKE256",
+    "variant": "forest",
+    "h": 26,
+    "shape": "pruned",
+    "b": 10,
+    "layers": [
+     26
+    ],
+    "size": 9292,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 433
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 363553
+    },
+    "cover_model_signatures": 28237,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "forest",
+    "h": 26,
+    "shape": "pruned",
+    "b": 10,
+    "layers": [
+     26
+    ],
+    "size": 9292,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 452,
+     "sha512": 209,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 786432,
+     "sha512": 20513,
+     "keccak": 0
+    },
+    "cover_model_signatures": 28237,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHAKE256",
+    "variant": "fors",
+    "h": 26,
+    "shape": "pruned",
+    "b": 10,
+    "layers": [
+     26
+    ],
+    "size": 12724,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 536
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 363553
+    },
+    "cover_model_signatures": 26137,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "fors",
+    "h": 26,
+    "shape": "pruned",
+    "b": 10,
+    "layers": [
+     26
+    ],
+    "size": 12724,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 286,
+     "sha512": 395,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 786432,
+     "sha512": 20513,
+     "keccak": 0
+    },
+    "cover_model_signatures": 26137,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHAKE256",
+    "variant": "forest",
+    "h": 26,
+    "shape": "pruned",
+    "b": 12,
+    "layers": [
+     26
+    ],
+    "size": 9292,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 433
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 1454109
+    },
+    "cover_model_signatures": 106979,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "forest",
+    "h": 26,
+    "shape": "pruned",
+    "b": 12,
+    "layers": [
+     26
+    ],
+    "size": 9292,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 452,
+     "sha512": 209,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 3145728,
+     "sha512": 81949,
+     "keccak": 0
+    },
+    "cover_model_signatures": 106979,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHAKE256",
+    "variant": "fors",
+    "h": 26,
+    "shape": "pruned",
+    "b": 12,
+    "layers": [
+     26
+    ],
+    "size": 12724,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 536
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 1454109
+    },
+    "cover_model_signatures": 99074,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "fors",
+    "h": 26,
+    "shape": "pruned",
+    "b": 12,
+    "layers": [
+     26
+    ],
+    "size": 12724,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 286,
+     "sha512": 395,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 3145728,
+     "sha512": 81949,
+     "keccak": 0
+    },
+    "cover_model_signatures": 99074,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHAKE256",
+    "variant": "forest",
+    "h": 26,
+    "shape": "pruned",
+    "b": 13,
+    "layers": [
+     26
+    ],
+    "size": 9292,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 433
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 2908187
+    },
+    "cover_model_signatures": 208195,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "forest",
+    "h": 26,
+    "shape": "pruned",
+    "b": 13,
+    "layers": [
+     26
+    ],
+    "size": 9292,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 452,
+     "sha512": 209,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 6291456,
+     "sha512": 163867,
+     "keccak": 0
+    },
+    "cover_model_signatures": 208195,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHAKE256",
+    "variant": "fors",
+    "h": 26,
+    "shape": "pruned",
+    "b": 13,
+    "layers": [
+     26
+    ],
+    "size": 12724,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 536
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 2908187
+    },
+    "cover_model_signatures": 192875,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "fors",
+    "h": 26,
+    "shape": "pruned",
+    "b": 13,
+    "layers": [
+     26
+    ],
+    "size": 12724,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 286,
+     "sha512": 395,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 6291456,
+     "sha512": 163867,
+     "keccak": 0
+    },
+    "cover_model_signatures": 192875,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHAKE256",
+    "variant": "forest",
+    "h": 26,
+    "shape": "pruned",
+    "b": 14,
+    "layers": [
+     26
+    ],
+    "size": 9292,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 433
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 5816345
+    },
+    "cover_model_signatures": 405108,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "forest",
+    "h": 26,
+    "shape": "pruned",
+    "b": 14,
+    "layers": [
+     26
+    ],
+    "size": 9292,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 452,
+     "sha512": 209,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 12582912,
+     "sha512": 327705,
+     "keccak": 0
+    },
+    "cover_model_signatures": 405108,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHAKE256",
+    "variant": "fors",
+    "h": 26,
+    "shape": "pruned",
+    "b": 14,
+    "layers": [
+     26
+    ],
+    "size": 12724,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 536
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 5816345
+    },
+    "cover_model_signatures": 375449,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "fors",
+    "h": 26,
+    "shape": "pruned",
+    "b": 14,
+    "layers": [
+     26
+    ],
+    "size": 12724,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 286,
+     "sha512": 395,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 12582912,
+     "sha512": 327705,
+     "keccak": 0
+    },
+    "cover_model_signatures": 375449,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHAKE256",
+    "variant": "forest",
+    "h": 26,
+    "shape": "pruned",
+    "b": 20,
+    "layers": [
+     26
+    ],
+    "size": 9292,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 433
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 372244493
+    },
+    "cover_model_signatures": 21898934,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "forest",
+    "h": 26,
+    "shape": "pruned",
+    "b": 20,
+    "layers": [
+     26
+    ],
+    "size": 9292,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 452,
+     "sha512": 209,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 805306368,
+     "sha512": 20971533,
+     "keccak": 0
+    },
+    "cover_model_signatures": 21898934,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHAKE256",
+    "variant": "fors",
+    "h": 26,
+    "shape": "pruned",
+    "b": 20,
+    "layers": [
+     26
+    ],
+    "size": 12724,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 536
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 372244493
+    },
+    "cover_model_signatures": 20373058,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "fors",
+    "h": 26,
+    "shape": "pruned",
+    "b": 20,
+    "layers": [
+     26
+    ],
+    "size": 12724,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 286,
+     "sha512": 395,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 805306368,
+     "sha512": 20971533,
+     "keccak": 0
+    },
+    "cover_model_signatures": 20373058,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHAKE256",
+    "variant": "forest",
+    "h": 26,
+    "shape": "pruned",
+    "b": 26,
+    "layers": [
+     26
+    ],
+    "size": 9292,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 433
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 23823646721
+    },
+    "cover_model_signatures": 1174622178,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "forest",
+    "h": 26,
+    "shape": "pruned",
+    "b": 26,
+    "layers": [
+     26
+    ],
+    "size": 9292,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 452,
+     "sha512": 209,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 51539607552,
+     "sha512": 1342177281,
+     "keccak": 0
+    },
+    "cover_model_signatures": 1174622178,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHAKE256",
+    "variant": "fors",
+    "h": 26,
+    "shape": "pruned",
+    "b": 26,
+    "layers": [
+     26
+    ],
+    "size": 12724,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 536
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 23823646721
+    },
+    "cover_model_signatures": 1099836929,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "fors",
+    "h": 26,
+    "shape": "pruned",
+    "b": 26,
+    "layers": [
+     26
+    ],
+    "size": 12724,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 286,
+     "sha512": 395,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 51539607552,
+     "sha512": 1342177281,
+     "keccak": 0
+    },
+    "cover_model_signatures": 1099836929,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHAKE256",
+    "variant": "forest",
+    "h": 26,
+    "shape": "layered",
+    "b": 26,
+    "layers": [
+     10,
+     8,
+     8
+    ],
+    "size": 13908,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 683
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 363521
+    },
+    "cover_model_signatures": 1174622178,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "forest",
+    "h": 26,
+    "shape": "layered",
+    "b": 26,
+    "layers": [
+     10,
+     8,
+     8
+    ],
+    "size": 13908,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 876,
+     "sha512": 249,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 786432,
+     "sha512": 20481,
+     "keccak": 0
+    },
+    "cover_model_signatures": 1174622178,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHAKE256",
+    "variant": "fors",
+    "h": 26,
+    "shape": "layered",
+    "b": 26,
+    "layers": [
+     10,
+     8,
+     8
+    ],
+    "size": 17340,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 786
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 363521
+    },
+    "cover_model_signatures": 1099836929,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "fors",
+    "h": 26,
+    "shape": "layered",
+    "b": 26,
+    "layers": [
+     10,
+     8,
+     8
+    ],
+    "size": 17340,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 710,
+     "sha512": 435,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 786432,
+     "sha512": 20481,
+     "keccak": 0
+    },
+    "cover_model_signatures": 1099836929,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHAKE256",
+    "variant": "forest",
+    "h": 28,
+    "shape": "pruned",
+    "b": 8,
+    "layers": [
+     28
+    ],
+    "size": 9340,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 435
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 90921
+    },
+    "cover_model_signatures": 7856,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "forest",
+    "h": 28,
+    "shape": "pruned",
+    "b": 8,
+    "layers": [
+     28
+    ],
+    "size": 9340,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 452,
+     "sha512": 211,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 196608,
+     "sha512": 5161,
+     "keccak": 0
+    },
+    "cover_model_signatures": 7856,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHAKE256",
+    "variant": "fors",
+    "h": 28,
+    "shape": "pruned",
+    "b": 8,
+    "layers": [
+     28
+    ],
+    "size": 12772,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 538
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 90921
+    },
+    "cover_model_signatures": 7270,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "fors",
+    "h": 28,
+    "shape": "pruned",
+    "b": 8,
+    "layers": [
+     28
+    ],
+    "size": 12772,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 286,
+     "sha512": 397,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 196608,
+     "sha512": 5161,
+     "keccak": 0
+    },
+    "cover_model_signatures": 7270,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHAKE256",
+    "variant": "forest",
+    "h": 28,
+    "shape": "pruned",
+    "b": 10,
+    "layers": [
+     28
+    ],
+    "size": 9340,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 435
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 363557
+    },
+    "cover_model_signatures": 29780,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "forest",
+    "h": 28,
+    "shape": "pruned",
+    "b": 10,
+    "layers": [
+     28
+    ],
+    "size": 9340,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 452,
+     "sha512": 211,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 786432,
+     "sha512": 20517,
+     "keccak": 0
+    },
+    "cover_model_signatures": 29780,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHAKE256",
+    "variant": "fors",
+    "h": 28,
+    "shape": "pruned",
+    "b": 10,
+    "layers": [
+     28
+    ],
+    "size": 12772,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 538
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 363557
+    },
+    "cover_model_signatures": 27559,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "fors",
+    "h": 28,
+    "shape": "pruned",
+    "b": 10,
+    "layers": [
+     28
+    ],
+    "size": 12772,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 286,
+     "sha512": 397,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 786432,
+     "sha512": 20517,
+     "keccak": 0
+    },
+    "cover_model_signatures": 27559,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHAKE256",
+    "variant": "forest",
+    "h": 28,
+    "shape": "pruned",
+    "b": 12,
+    "layers": [
+     28
+    ],
+    "size": 9340,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 435
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 1454113
+    },
+    "cover_model_signatures": 112910,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "forest",
+    "h": 28,
+    "shape": "pruned",
+    "b": 12,
+    "layers": [
+     28
+    ],
+    "size": 9340,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 452,
+     "sha512": 211,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 3145728,
+     "sha512": 81953,
+     "keccak": 0
+    },
+    "cover_model_signatures": 112910,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHAKE256",
+    "variant": "fors",
+    "h": 28,
+    "shape": "pruned",
+    "b": 12,
+    "layers": [
+     28
+    ],
+    "size": 12772,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 538
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 1454113
+    },
+    "cover_model_signatures": 104513,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "fors",
+    "h": 28,
+    "shape": "pruned",
+    "b": 12,
+    "layers": [
+     28
+    ],
+    "size": 12772,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 286,
+     "sha512": 397,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 3145728,
+     "sha512": 81953,
+     "keccak": 0
+    },
+    "cover_model_signatures": 104513,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHAKE256",
+    "variant": "forest",
+    "h": 28,
+    "shape": "pruned",
+    "b": 13,
+    "layers": [
+     28
+    ],
+    "size": 9340,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 435
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 2908191
+    },
+    "cover_model_signatures": 219817,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "forest",
+    "h": 28,
+    "shape": "pruned",
+    "b": 13,
+    "layers": [
+     28
+    ],
+    "size": 9340,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 452,
+     "sha512": 211,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 6291456,
+     "sha512": 163871,
+     "keccak": 0
+    },
+    "cover_model_signatures": 219817,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHAKE256",
+    "variant": "fors",
+    "h": 28,
+    "shape": "pruned",
+    "b": 13,
+    "layers": [
+     28
+    ],
+    "size": 12772,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 538
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 2908191
+    },
+    "cover_model_signatures": 203514,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "fors",
+    "h": 28,
+    "shape": "pruned",
+    "b": 13,
+    "layers": [
+     28
+    ],
+    "size": 12772,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 286,
+     "sha512": 397,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 6291456,
+     "sha512": 163871,
+     "keccak": 0
+    },
+    "cover_model_signatures": 203514,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHAKE256",
+    "variant": "forest",
+    "h": 28,
+    "shape": "pruned",
+    "b": 14,
+    "layers": [
+     28
+    ],
+    "size": 9340,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 435
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 5816349
+    },
+    "cover_model_signatures": 427882,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "forest",
+    "h": 28,
+    "shape": "pruned",
+    "b": 14,
+    "layers": [
+     28
+    ],
+    "size": 9340,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 452,
+     "sha512": 211,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 12582912,
+     "sha512": 327709,
+     "keccak": 0
+    },
+    "cover_model_signatures": 427882,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHAKE256",
+    "variant": "fors",
+    "h": 28,
+    "shape": "pruned",
+    "b": 14,
+    "layers": [
+     28
+    ],
+    "size": 12772,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 538
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 5816349
+    },
+    "cover_model_signatures": 396259,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "fors",
+    "h": 28,
+    "shape": "pruned",
+    "b": 14,
+    "layers": [
+     28
+    ],
+    "size": 12772,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 286,
+     "sha512": 397,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 12582912,
+     "sha512": 327709,
+     "keccak": 0
+    },
+    "cover_model_signatures": 396259,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHAKE256",
+    "variant": "forest",
+    "h": 28,
+    "shape": "pruned",
+    "b": 20,
+    "layers": [
+     28
+    ],
+    "size": 9340,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 435
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 372244497
+    },
+    "cover_model_signatures": 23185564,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "forest",
+    "h": 28,
+    "shape": "pruned",
+    "b": 20,
+    "layers": [
+     28
+    ],
+    "size": 9340,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 452,
+     "sha512": 211,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 805306368,
+     "sha512": 20971537,
+     "keccak": 0
+    },
+    "cover_model_signatures": 23185564,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHAKE256",
+    "variant": "fors",
+    "h": 28,
+    "shape": "pruned",
+    "b": 20,
+    "layers": [
+     28
+    ],
+    "size": 12772,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 538
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 372244497
+    },
+    "cover_model_signatures": 21536794,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "fors",
+    "h": 28,
+    "shape": "pruned",
+    "b": 20,
+    "layers": [
+     28
+    ],
+    "size": 12772,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 286,
+     "sha512": 397,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 805306368,
+     "sha512": 20971537,
+     "keccak": 0
+    },
+    "cover_model_signatures": 21536794,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHAKE256",
+    "variant": "forest",
+    "h": 28,
+    "shape": "pruned",
+    "b": 28,
+    "layers": [
+     28
+    ],
+    "size": 9340,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 435
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 95294586881
+    },
+    "cover_model_signatures": 4698488678,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "forest",
+    "h": 28,
+    "shape": "pruned",
+    "b": 28,
+    "layers": [
+     28
+    ],
+    "size": 9340,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 452,
+     "sha512": 211,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 206158430208,
+     "sha512": 5368709121,
+     "keccak": 0
+    },
+    "cover_model_signatures": 4698488678,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHAKE256",
+    "variant": "fors",
+    "h": 28,
+    "shape": "pruned",
+    "b": 28,
+    "layers": [
+     28
+    ],
+    "size": 12772,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 538
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 95294586881
+    },
+    "cover_model_signatures": 4399347682,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "fors",
+    "h": 28,
+    "shape": "pruned",
+    "b": 28,
+    "layers": [
+     28
+    ],
+    "size": 12772,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 286,
+     "sha512": 397,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 206158430208,
+     "sha512": 5368709121,
+     "keccak": 0
+    },
+    "cover_model_signatures": 4399347682,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHAKE256",
+    "variant": "forest",
+    "h": 28,
+    "shape": "layered",
+    "b": 28,
+    "layers": [
+     10,
+     9,
+     9
+    ],
+    "size": 13956,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 685
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 363521
+    },
+    "cover_model_signatures": 4698488678,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "forest",
+    "h": 28,
+    "shape": "layered",
+    "b": 28,
+    "layers": [
+     10,
+     9,
+     9
+    ],
+    "size": 13956,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 876,
+     "sha512": 251,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 786432,
+     "sha512": 20481,
+     "keccak": 0
+    },
+    "cover_model_signatures": 4698488678,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHAKE256",
+    "variant": "fors",
+    "h": 28,
+    "shape": "layered",
+    "b": 28,
+    "layers": [
+     10,
+     9,
+     9
+    ],
+    "size": 17388,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 788
+    },
+    "keygen": {
+     "sha256": 0,
+     "sha512": 0,
+     "keccak": 363521
+    },
+    "cover_model_signatures": 4399347682,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   },
+   {
+    "hash": "SHA2",
+    "variant": "fors",
+    "h": 28,
+    "shape": "layered",
+    "b": 28,
+    "layers": [
+     10,
+     9,
+     9
+    ],
+    "size": 17388,
+    "public_key_bytes": 48,
+    "verify": {
+     "sha256": 710,
+     "sha512": 437,
+     "keccak": 0
+    },
+    "keygen": {
+     "sha256": 786432,
+     "sha512": 20481,
+     "keccak": 0
+    },
+    "cover_model_signatures": 4399347682,
+    "proven_lifetime": null,
+    "quantum_security_bits": null,
+    "measured_cpu": null,
+    "device_seconds": null
+   }
+  ]
  }
 }
