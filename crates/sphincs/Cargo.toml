@@ -10,8 +10,12 @@ description = "The leanSphincs candidate: a two-level WOTS forest under WOTS+C (
 workspace = true
 
 [features]
-# Keep diagnostic thread-local accounting out of normal signing and key generation.
-hash-counts = []
+default = ["std"]
+# Without it the crate is no_std (it still needs `alloc`), and `compressions` always returns 0.
+std = []
+# Keep diagnostic thread-local accounting out of normal signing and key generation. It counts in
+# thread-local storage, so it needs `std`.
+hash-counts = ["std"]
 
 [dependencies]
 keccak.workspace = true

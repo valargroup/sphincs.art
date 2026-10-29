@@ -7,6 +7,8 @@
 //! flagged final, and no padding byte is added, so an input that fills its last block exactly pays
 //! nothing more.
 
+#![cfg_attr(not(test), no_std)]
+
 /// Digest length in bytes.
 pub const OUT_LEN: usize = 32;
 /// Block length in bytes.
@@ -42,7 +44,7 @@ fn g(v: &mut [u32; 16], a: usize, b: usize, c: usize, d: usize, x: u32, y: u32) 
 
 /// The compression function `F(h, m, t, f)`: `t` counts the bytes hashed so far, this block included.
 pub fn compress(h: &mut [u32; 8], block: &[u8; BLOCK], t: u64, last: bool) {
-    let m: [u32; 16] = std::array::from_fn(|i| u32::from_le_bytes(block[4 * i..4 * i + 4].try_into().unwrap()));
+    let m: [u32; 16] = core::array::from_fn(|i| u32::from_le_bytes(block[4 * i..4 * i + 4].try_into().unwrap()));
     let mut v = [0u32; 16];
     v[..8].copy_from_slice(h);
     v[8..].copy_from_slice(&IV);

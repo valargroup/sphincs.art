@@ -7,6 +7,7 @@
 //! Merkle tree of height 3 over 8 children, also hashed up to its two top nodes only. A child is a
 //! small WOTS key: 6 chains of length 5 under a leaf hash, signed at a codeword of digit sum 5.
 
+#[cfg(feature = "std")]
 use std::sync::OnceLock;
 
 use crate::*;
@@ -51,16 +52,42 @@ pub const VALUES_PER_COORD: usize = SUBS * (CHILD_CHAINS + SUB_HEIGHT) + TOP_HEI
 /// Spread-out codewords are easier to forge once a key has signed twice, so the 32 most spread-out
 /// ones are left out and the 42 most concentrated ones appear twice.
 pub fn codeword_table() -> &'static [[u8; CHILD_CHAINS]; 256] {
-    static TABLE: OnceLock<[[u8; CHILD_CHAINS]; 256]> = OnceLock::new();
-    TABLE.get_or_init(|| {
-        // base-5 codes in increasing order, i.e. digit vectors in lexicographic order
-        let mut words: Vec<[u8; CHILD_CHAINS]> = (0..5usize.pow(CHILD_CHAINS as u32))
-            .map(|code| std::array::from_fn(|i| (code / 5usize.pow((CHILD_CHAINS - 1 - i) as u32) % 5) as u8))
-            .filter(|d: &[u8; CHILD_CHAINS]| d.iter().map(|&x| x as usize).sum::<usize>() == CODEWORD_SUM)
-            .collect();
-        words.sort_by_key(|d| std::cmp::Reverse(d.iter().map(|&x| (x as u32) * (x as u32)).sum::<u32>()));
-        std::array::from_fn(|t| words[t % 214])
-    })
+    #[cfg(feature = "std")]
+    {
+        static TABLE: OnceLock<[[u8; CHILD_CHAINS]; 256]> = OnceLock::new();
+        TABLE.get_or_init(build_codeword_table)
+    }
+    #[cfg(not(feature = "std"))]
+    {
+        // Built on first use and kept. Two callers racing may both build it; one copy wins and
+        // the other is dropped.
+        use alloc::boxed::Box;
+        use core::ptr::null_mut;
+        use core::sync::atomic::{AtomicPtr, Ordering};
+        static TABLE: AtomicPtr<[[u8; CHILD_CHAINS]; 256]> = AtomicPtr::new(null_mut());
+        let table = TABLE.load(Ordering::Acquire);
+        if !table.is_null() {
+            return unsafe { &*table };
+        }
+        let built = Box::into_raw(Box::new(build_codeword_table()));
+        match TABLE.compare_exchange(null_mut(), built, Ordering::AcqRel, Ordering::Acquire) {
+            Ok(_) => unsafe { &*built },
+            Err(existing) => {
+                drop(unsafe { Box::from_raw(built) });
+                unsafe { &*existing }
+            }
+        }
+    }
+}
+
+fn build_codeword_table() -> [[u8; CHILD_CHAINS]; 256] {
+    // base-5 codes in increasing order, i.e. digit vectors in lexicographic order
+    let mut words: Vec<[u8; CHILD_CHAINS]> = (0..5usize.pow(CHILD_CHAINS as u32))
+        .map(|code| core::array::from_fn(|i| (code / 5usize.pow((CHILD_CHAINS - 1 - i) as u32) % 5) as u8))
+        .filter(|d: &[u8; CHILD_CHAINS]| d.iter().map(|&x| x as usize).sum::<usize>() == CODEWORD_SUM)
+        .collect();
+    words.sort_by_key(|d| core::cmp::Reverse(d.iter().map(|&x| (x as u32) * (x as u32)).sum::<u32>()));
+    core::array::from_fn(|t| words[t % 214])
 }
 
 /// `lut t`: the codeword of table entry `t`, the deficit of each of the 6 chains.
@@ -197,7 +224,7 @@ impl Forest {
                             for (i, &start) in secrets.iter().enumerate() {
                                 starts[chain_index(c, s, j, a, i)] = start;
                             }
-                            let ends = std::array::from_fn(|i| {
+                            let ends = core::array::from_fn(|i| {
                                 forest_chain(pp, idx, c, s, j, a, i, 0, CHAIN_TOP, secrets[i])
                             });
                             child_leaf(pp, idx, c, s, j, a, &ends)
@@ -226,20 +253,20 @@ impl Forest {
 
     /// The opening of every coordinate at the digest's marks.
     pub fn open(&self, pp: &Pp, idx: u64, marks: &[CoordMark; COORDS]) -> ForestOpening {
-        std::array::from_fn(|c| {
+        core::array::from_fn(|c| {
             let mark = marks[c];
             let s = mark.super_child;
             CoordOpening {
-                sub: std::array::from_fn(|j| {
+                sub: core::array::from_fn(|j| {
                     let (a, word) = (mark.child[j], lut(mark.word[j]));
-                    let values = std::array::from_fn(|i| {
+                    let values = core::array::from_fn(|i| {
                         let start = self.starts[chain_index(c, s, j, a, i)];
                         forest_chain(pp, idx, c, s, j, a, i, 0, CHAIN_TOP - word[i] as usize, start)
                     });
                     let levels = &self.sub[sub_index(c, s, j)];
-                    SubOpening { values, path: std::array::from_fn(|level| levels[level][(a >> level) ^ 1]) }
+                    SubOpening { values, path: core::array::from_fn(|level| levels[level][(a >> level) ^ 1]) }
                 }),
-                top: std::array::from_fn(|level| self.top[c][level][(s >> level) ^ 1]),
+                top: core::array::from_fn(|level| self.top[c][level][(s >> level) ^ 1]),
             }
         })
     }
@@ -266,12 +293,12 @@ type Levels = Vec<Vec<Digest>>;
 pub fn forest_recover(
     pp: &Pp, idx: u64, marks: &[CoordMark; COORDS], opening: &ForestOpening,
 ) -> ForestKey {
-    std::array::from_fn(|c| {
+    core::array::from_fn(|c| {
         let (mark, open) = (marks[c], &opening[c]);
         let s = mark.super_child;
-        let tops: [[Digest; 2]; SUBS] = std::array::from_fn(|j| {
+        let tops: [[Digest; 2]; SUBS] = core::array::from_fn(|j| {
             let (a, word) = (mark.child[j], lut(mark.word[j]));
-            let ends = std::array::from_fn(|i| {
+            let ends = core::array::from_fn(|i| {
                 let deficit = word[i] as usize;
                 forest_chain(pp, idx, c, s, j, a, i, CHAIN_TOP - deficit, deficit, open.sub[j].values[i])
             });
@@ -344,7 +371,7 @@ mod tests {
                 assert_eq!(expected, 59_120);
             }
 
-            let marks: [CoordMark; COORDS] = std::array::from_fn(|c| CoordMark {
+            let marks: [CoordMark; COORDS] = core::array::from_fn(|c| CoordMark {
                 super_child: c % SUPERS,
                 child: [c % 8, (c + 3) % 8],
                 word: [c as u8, 200],
