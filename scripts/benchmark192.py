@@ -87,7 +87,7 @@ def main(argv=None):
         (destination / "metadata.json").write_text(json.dumps(metadata, indent=2) + "\n")
     save()
     try:
-        build = subprocess.run(["cargo", "build", "--locked", "--release", "-p", "sphincs", "--bench", "configurations", "--message-format=json"],
+        build = subprocess.run(["cargo", "build", "--locked", "--release", "-p", "sphincs", "--features", "hash-counts", "--bench", "configurations", "--message-format=json"],
                                cwd=ROOT, text=True, stdout=subprocess.PIPE, check=True, timeout=600)
         artifacts = [json.loads(line) for line in build.stdout.splitlines() if line.startswith("{")]
         binaries = [a["executable"] for a in artifacts if a.get("reason") == "compiler-artifact" and a.get("target", {}).get("name") == "configurations" and a.get("executable")]

@@ -141,6 +141,11 @@ the least randomizer/counter. Rust regression vectors pin the results. Website
 data includes all 156 combinations of hash, variant, height and shape/pruning;
 operation counts distinguish SHA-256, SHA-512 and Keccak-f.
 
+Normal builds omit diagnostic hash-operation accounting. Enable the `hash-counts`
+Cargo feature to expose `level192::hash_counts`; unit tests enable accounting
+automatically. The CPU runner enables the feature explicitly so its operation
+counts remain available. Timings from that runner include the accounting work.
+
 For CPU timings, first commit the source, then run on an otherwise idle machine:
 
 ```sh
@@ -196,8 +201,8 @@ length; `to_bytes` allocates that length once when an owned byte vector is neede
 Run the allocation regression check with:
 
 ```sh
-cargo run --locked --release -p sphincs --example memory192 -- --check
-cargo run --locked --release -p sphincs --example memory192 -- --check --cache-levels 2
+cargo run --locked --release -p sphincs --features hash-counts --example memory192 -- --check
+cargo run --locked --release -p sphincs --features hash-counts --example memory192 -- --check --cache-levels 2
 ```
 
 The example covers both hash backends for height-20 forest keys, pruned at kept

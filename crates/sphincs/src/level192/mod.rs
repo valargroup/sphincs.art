@@ -15,8 +15,10 @@ pub use crate::{HEIGHTS, OtsKey, PRUNED, Shape, VerifyError};
 use crate::{Tweak, address, codeword_table, layered_heights, tweak};
 use forest::*;
 use fors::*;
+#[cfg(any(test, feature = "hash-counts"))]
+pub use hashing::hash_counts;
 use hashing::*;
-pub use hashing::{HashCounts, HashFn, hash_counts};
+pub use hashing::{HashCounts, HashFn};
 pub use scheme::{
     PublicKey, SecretKey, SignError, Signature, TreeCache, configured_seed, key_gen,
     key_gen_with_cache, sign, verify,

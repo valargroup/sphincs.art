@@ -6,16 +6,15 @@
 //! Category 3 primitive choices, not a claim to implement the SLH-DSA transcript.
 
 use super::*;
+use core::ops::{Add, AddAssign, Mul, Sub};
 use hmac::{Hmac, KeyInit, Mac};
 use sha2::{Digest as ShaDigest, Sha256, Sha512};
 use shake::{
     Shake256,
     digest::{ExtendableOutput, Update, XofReader},
 };
-use std::{
-    cell::Cell,
-    ops::{Add, AddAssign, Mul, Sub},
-};
+#[cfg(any(test, feature = "hash-counts"))]
+use std::cell::Cell;
 
 pub(crate) const DOMAIN: &[u8] = b"leanSPHINCS-192-v1";
 pub(crate) const PREFIX_LEN: usize = DOMAIN.len() + 1 + N + 16;
@@ -91,13 +90,20 @@ impl Mul<u64> for HashCounts {
         }
     }
 }
+#[cfg(any(test, feature = "hash-counts"))]
 thread_local! { static COUNTS: Cell<HashCounts> = const { Cell::new(HashCounts { sha256:0, sha512:0, keccak:0 }) }; }
+/// Returns diagnostic operations on this thread; available with the `hash-counts` feature.
+#[cfg(any(test, feature = "hash-counts"))]
 pub fn hash_counts() -> HashCounts {
     COUNTS.with(Cell::get)
 }
+#[cfg(any(test, feature = "hash-counts"))]
 fn count(n: HashCounts) {
     COUNTS.with(|c| c.set(c.get() + n));
 }
+#[cfg(not(any(test, feature = "hash-counts")))]
+#[inline]
+fn count(_: HashCounts) {}
 
 #[derive(Clone, Copy)]
 pub(crate) enum Primitive {
