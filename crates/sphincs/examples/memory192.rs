@@ -145,6 +145,25 @@ fn main() {
                 assert_eq!(bytes.len(), cfg.sig_size());
                 scheme::verify(&cfg, &pk, &message, &sig).unwrap();
                 if check {
+                    if precompute_level.is_none() {
+                        assert_eq!(
+                            precompute_bytes, 0,
+                            "normal signing prepared a public cache"
+                        );
+                        assert_eq!(
+                            resident_bytes, key_heap,
+                            "default preparation retained extra memory"
+                        );
+                        assert_eq!(
+                            prepare_peak, key_heap,
+                            "default preparation allocated temporary memory"
+                        );
+                        assert_eq!(
+                            prepare_counts,
+                            scheme::HashCounts::default(),
+                            "default preparation performed hash work"
+                        );
+                    }
                     let full_budget = match shape {
                         Shape::Pruned { .. } => 24 * 1024,
                         Shape::Layered => 28 * 1024,

@@ -10,6 +10,9 @@ description = "The leanSphincs candidate: a two-level WOTS forest under WOTS+C (
 workspace = true
 
 [features]
+default = []
+# Large public forest caches must be explicitly enabled and prepared by the caller.
+forest-precompute = []
 # Keep diagnostic thread-local accounting out of normal signing and key generation.
 hash-counts = []
 
@@ -28,4 +31,4 @@ required-features = ["hash-counts"]
 
 [[example]]
 name = "memory192"
-required-features = ["hash-counts"]
+required-features = ["hash-counts", "forest-precompute"]

@@ -264,6 +264,7 @@ fn super_children(
 }
 
 /// Appends one level of public coordinate-tree nodes for one instance. No chain secrets are kept.
+#[cfg(feature = "forest-precompute")]
 pub(super) fn precompute_instance(
     pp: &Pp,
     master: &MasterSecret,
@@ -292,7 +293,14 @@ pub(super) fn forest_sign(
     idx: u64,
     marks: &[CoordMark; COORDS],
 ) -> (ForestKey, Box<ForestOpening>) {
-    forest_sign_precomputed(pp, master, idx, marks, None)
+    forest_sign_precomputed(
+        pp,
+        master,
+        idx,
+        marks,
+        #[cfg(feature = "forest-precompute")]
+        None,
+    )
 }
 
 /// Cached nodes are generated internally and bound to the signing key by the prepared signer.
@@ -301,8 +309,9 @@ pub(super) fn forest_sign_precomputed(
     master: &MasterSecret,
     idx: u64,
     marks: &[CoordMark; COORDS],
-    cached: Option<(usize, &[Digest])>,
+    #[cfg(feature = "forest-precompute")] cached: Option<(usize, &[Digest])>,
 ) -> (ForestKey, Box<ForestOpening>) {
+    #[cfg(feature = "forest-precompute")]
     if let Some((level, nodes)) = cached {
         assert!(level < TOP_HEIGHT);
         assert_eq!(nodes.len(), COORDS * (SUPERS >> level));
@@ -311,11 +320,15 @@ pub(super) fn forest_sign_precomputed(
     let mut opening = Vec::with_capacity(COORDS);
     for (c, mark) in marks.iter().enumerate() {
         let mut open = empty_opening();
+        #[cfg(feature = "forest-precompute")]
         let (first, count) = cached.map_or((0, SUPERS), |(level, _)| {
             ((mark.super_child >> level) << level, 1 << level)
         });
+        #[cfg(not(feature = "forest-precompute"))]
+        let (first, count) = (0, SUPERS);
         let mut supers = super_children(pp, master, idx, c, first, count, Some(mark), &mut open);
-        key[c] = if let Some((level, nodes)) = cached {
+        #[cfg(feature = "forest-precompute")]
+        let coordinate_key = if let Some((level, nodes)) = cached {
             let mut width = count;
             for height in 0..level {
                 open.top[height] = supers[((mark.super_child - first) >> height) ^ 1];
@@ -352,6 +365,14 @@ pub(super) fn forest_sign_precomputed(
                 |level, node, left, right| top_node(pp, idx, c, level, node, left, right),
             )
         };
+        #[cfg(not(feature = "forest-precompute"))]
+        let coordinate_key = fold_opening(
+            &mut supers,
+            mark.super_child,
+            &mut open.top,
+            |level, node, left, right| top_node(pp, idx, c, level, node, left, right),
+        );
+        key[c] = coordinate_key;
         opening.push(open);
     }
     (

@@ -201,8 +201,8 @@ length; `to_bytes` allocates that length once when an owned byte vector is neede
 Run the allocation regression check with:
 
 ```sh
-cargo run --locked --release -p sphincs --features hash-counts --example memory192 -- --check
-cargo run --locked --release -p sphincs --features hash-counts --example memory192 -- --check --cache-levels 2
+cargo run --locked --release -p sphincs --features hash-counts,forest-precompute --example memory192 -- --check
+cargo run --locked --release -p sphincs --features hash-counts,forest-precompute --example memory192 -- --check --cache-levels 2
 ```
 
 The example covers both hash backends for height-20 forest keys, pruned at kept
@@ -216,6 +216,13 @@ With `--cache-levels`, the heap budget is reduced by the omitted tree values.
 The CPU runner accepts `--kept-height 8 --cache-levels 2` for the same configuration.
 
 ### Public forest precomputation
+
+Public forest precomputation is **disabled by default**. The crate declares no
+default Cargo features. Its preparation API and cache builder are compiled only
+with `forest-precompute`, and even an enabled build allocates no public forest
+cache through normal `key_gen`, `key_gen_with_cache` or `sign` calls. A caller
+must explicitly call `prepare_forest` with a storage budget. Memory-limited
+wallets can leave the feature disabled and use the normal API.
 
 For a single-tree forest key, `prepare_forest` optionally generates public
 coordinate-tree nodes for every retained signing instance. The returned
@@ -256,10 +263,13 @@ key recovered from it.
 The allocation example reports preparation cost, retained public-cache bytes,
 and total signing heap separately. With precomputation enabled it exercises
 single-tree keys only; other invocations retain the original coverage.
+The harness enables cache support to test both paths. Without
+`--precompute-level`, `--check` requires zero preparation hash work, zero cache
+bytes and no temporary or retained preparation allocations.
 
 ```sh
-cargo run --locked --release -p sphincs --features hash-counts --example memory192 -- --check --hash SHA2 --cache-levels 2 --precompute-level 3
-cargo run --locked --release -p sphincs --features hash-counts --example memory192 -- --check --hash SHA2 --cache-levels 2 --precompute-level 0
+cargo run --locked --release -p sphincs --features hash-counts,forest-precompute --example memory192 -- --check --hash SHA2 --cache-levels 2 --precompute-level 3
+cargo run --locked --release -p sphincs --features hash-counts,forest-precompute --example memory192 -- --check --hash SHA2 --cache-levels 2 --precompute-level 0
 ```
 
 ## Credits

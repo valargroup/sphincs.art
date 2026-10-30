@@ -1,7 +1,9 @@
 //! Key generation, raw-message signing, verification and exact-length serialization.
 use super::*;
 
+#[cfg(feature = "forest-precompute")]
 mod prepared;
+#[cfg(feature = "forest-precompute")]
 pub use prepared::{ForestPrecomputeError, PreparedForest, prepare_forest};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -295,7 +297,8 @@ pub enum SignError {
     EncodingExhausted,
 }
 
-/// Signs raw message bytes deterministically. Signature-use limits are the caller's responsibility.
+/// Signs raw message bytes deterministically, without preparing or allocating a public forest cache.
+/// Signature-use limits are the caller's responsibility.
 pub fn sign(sk: &SecretKey, message: &[u8]) -> Result<Signature, SignError> {
     sign_with_limits(sk, message, MAX_ENCODING_ATTEMPTS, MAX_ENCODING_ATTEMPTS)
 }
@@ -305,7 +308,14 @@ pub(super) fn sign_with_limits(
     randomizer_limit: u64,
     encoding_limit: u64,
 ) -> Result<Signature, SignError> {
-    sign_with_precomputed(sk, message, randomizer_limit, encoding_limit, None)
+    sign_with_precomputed(
+        sk,
+        message,
+        randomizer_limit,
+        encoding_limit,
+        #[cfg(feature = "forest-precompute")]
+        None,
+    )
 }
 
 fn sign_with_precomputed(
@@ -313,7 +323,7 @@ fn sign_with_precomputed(
     message: &[u8],
     randomizer_limit: u64,
     encoding_limit: u64,
-    prepared: Option<&PreparedForest<'_>>,
+    #[cfg(feature = "forest-precompute")] prepared: Option<&PreparedForest<'_>>,
 ) -> Result<Signature, SignError> {
     let (cfg, pp) = (&sk.cfg, &sk.pp);
     let layers = cfg.layers();
@@ -336,11 +346,14 @@ fn sign_with_precomputed(
     let (opening, mut payload) = match cfg.variant {
         Variant::Forest => {
             let marks = forest_marks(&digest, cfg.h);
+            #[cfg(feature = "forest-precompute")]
             let (key, opening) = if let Some(prepared) = prepared {
                 forest_sign_precomputed(pp, &sk.master, idx, &marks, Some(prepared.instance(idx)))
             } else {
                 forest_sign(pp, &sk.master, idx, &marks)
             };
+            #[cfg(not(feature = "forest-precompute"))]
+            let (key, opening) = forest_sign(pp, &sk.master, idx, &marks);
             (
                 Opening::Forest(opening),
                 key.as_flattened().as_flattened().to_vec(),

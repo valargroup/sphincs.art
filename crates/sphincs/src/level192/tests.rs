@@ -446,6 +446,7 @@ fn streamed_forest_openings_cover_every_branch() {
     for hash in HashFn::ALL {
         let pp = Pp::new(&config(hash, Variant::Forest), [17; N]);
         let idx = (1 << 28) - 1;
+        #[cfg(feature = "forest-precompute")]
         let caches: Vec<_> = (0..TOP_HEIGHT)
             .map(|level| {
                 let mut nodes = Vec::new();
@@ -466,10 +467,13 @@ fn streamed_forest_openings_cover_every_branch() {
                     (255 - selected * 11 - c * 3) as u8,
                 ],
             });
+            #[cfg(feature = "forest-precompute")]
             let before = hash_counts();
             let (key, opening) = forest_sign(&pp, &[29; 32], idx, &marks);
+            #[cfg(feature = "forest-precompute")]
             let full_counts = hash_counts() - before;
             assert_eq!(forest_recover(&pp, idx, &marks, &opening), key);
+            #[cfg(feature = "forest-precompute")]
             for (level, nodes) in caches.iter().enumerate() {
                 let before = hash_counts();
                 let (cached_key, cached_opening) =
@@ -503,6 +507,7 @@ fn streamed_forest_openings_cover_every_branch() {
 }
 
 #[test]
+#[cfg(feature = "forest-precompute")]
 fn prepared_forest_matches_normal_signing_and_checks_its_budget() {
     for hash in HashFn::ALL {
         let cfg = config(hash, Variant::Forest);

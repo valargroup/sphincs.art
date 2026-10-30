@@ -3,6 +3,18 @@
 //! These are not SLH-DSA parameter sets. The 128-bit family's Lean proofs do not apply here.
 //! Callers must assess the documented attack models and signature-use limits before use.
 //! The forest and FORS variants share the same WOTS+C, Merkle, and signing implementation.
+//!
+//! Public forest precomputation is excluded from default builds. It requires the
+//! `forest-precompute` Cargo feature and an explicit preparation call with a storage budget.
+#![cfg_attr(
+    not(feature = "forest-precompute"),
+    doc = r#"
+The preparation API is unavailable without its opt-in feature:
+```compile_fail
+use sphincs::level192::prepare_forest;
+```
+"#
+)]
 
 mod forest;
 mod fors;
@@ -19,9 +31,11 @@ use fors::*;
 pub use hashing::hash_counts;
 use hashing::*;
 pub use hashing::{HashCounts, HashFn};
+#[cfg(feature = "forest-precompute")]
+pub use scheme::{ForestPrecomputeError, PreparedForest, prepare_forest};
 pub use scheme::{
-    ForestPrecomputeError, PreparedForest, PublicKey, SecretKey, SignError, Signature, TreeCache,
-    configured_seed, key_gen, key_gen_with_cache, prepare_forest, sign, verify,
+    PublicKey, SecretKey, SignError, Signature, TreeCache, configured_seed, key_gen,
+    key_gen_with_cache, sign, verify,
 };
 use tree::*;
 use wots::*;

@@ -120,6 +120,7 @@ impl XmssTree {
         leaf >> self.b == self.start >> self.b
     }
 
+    #[cfg(feature = "forest-precompute")]
     pub(super) fn kept_leaves(&self) -> core::ops::Range<u64> {
         self.start..self.start + (1u64 << self.b)
     }
