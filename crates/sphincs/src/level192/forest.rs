@@ -223,16 +223,15 @@ fn super_children(
         for (j, sub_top) in tops.iter_mut().enumerate() {
             let mut leaves = [[0; N]; CHILDREN];
             for (a, leaf) in leaves.iter_mut().enumerate() {
-                let secrets = child_secrets(pp, master, idx, c, s, j, a);
-                let ends = std::array::from_fn(|i| {
-                    forest_chain(pp, idx, c, s, j, a, i, 0, CHAIN_TOP, secrets[i])
-                });
-                *leaf = child_leaf(pp, idx, c, s, j, a, &ends);
+                let mut ends = child_secrets(pp, master, idx, c, s, j, a);
                 if let Some(mark) = mark.filter(|mark| s == mark.super_child && a == mark.child[j])
                 {
                     let word = lut(mark.word[j]);
-                    open.sub[j].values = std::array::from_fn(|i| {
-                        forest_chain(
+                    for (i, end) in ends.iter_mut().enumerate() {
+                        let position = CHAIN_TOP - word[i] as usize;
+                        *end = forest_chain(pp, idx, c, s, j, a, i, 0, position, *end);
+                        open.sub[j].values[i] = *end;
+                        *end = forest_chain(
                             pp,
                             idx,
                             c,
@@ -240,12 +239,17 @@ fn super_children(
                             j,
                             a,
                             i,
-                            0,
-                            CHAIN_TOP - word[i] as usize,
-                            secrets[i],
-                        )
-                    });
+                            position,
+                            CHAIN_TOP - position,
+                            *end,
+                        );
+                    }
+                } else {
+                    for (i, end) in ends.iter_mut().enumerate() {
+                        *end = forest_chain(pp, idx, c, s, j, a, i, 0, CHAIN_TOP, *end);
+                    }
                 }
+                *leaf = child_leaf(pp, idx, c, s, j, a, &ends);
             }
             let mut path = [[0; N]; SUB_HEIGHT];
             *sub_top = fold_opening(
@@ -467,6 +471,71 @@ pub(super) fn forest_recover(
             open.top[TOP_HEIGHT - 1],
         )
     })
+}
+
+#[cfg(test)]
+mod chain_tests {
+    use super::*;
+
+    #[test]
+    fn selected_chain_values_match_reference_walks() {
+        let seed = [29; 32];
+        let idx = (1 << 28) - 1;
+        let c = COORDS - 1;
+        let selected = SUPERS - 1;
+        for hash in HashFn::ALL {
+            let cfg = Config::new(hash, 28, Shape::Pruned { b: 8 }, Variant::Forest);
+            let pp = Pp::new(&cfg, [17; N]);
+            for word in 0..=u8::MAX {
+                let mark = CoordMark {
+                    super_child: selected,
+                    child: [0, CHILDREN - 1],
+                    word: [word; SUBS],
+                };
+                let mut open = empty_opening();
+                let before = hash_counts();
+                super_children(&pp, &seed, idx, c, selected, 1, Some(&mark), &mut open);
+                let counts = hash_counts() - before;
+                assert_eq!(
+                    counts,
+                    match hash {
+                        HashFn::Sha2 => HashCounts {
+                            sha256: 960,
+                            sha512: 46,
+                            keccak: 0
+                        },
+                        HashFn::Shake256 => HashCounts {
+                            sha256: 0,
+                            sha512: 0,
+                            keccak: 478
+                        },
+                    }
+                );
+                for j in 0..SUBS {
+                    let starts = child_secrets(&pp, &seed, idx, c, selected, j, mark.child[j]);
+                    let digits = lut(word);
+                    let expected = std::array::from_fn(|i| {
+                        forest_chain(
+                            &pp,
+                            idx,
+                            c,
+                            selected,
+                            j,
+                            mark.child[j],
+                            i,
+                            0,
+                            CHAIN_TOP - digits[i] as usize,
+                            starts[i],
+                        )
+                    });
+                    assert_eq!(
+                        open.sub[j].values, expected,
+                        "{hash:?}, word {word}, subtree {j}"
+                    );
+                }
+            }
+        }
+    }
 }
 
 #[cfg(test)]
