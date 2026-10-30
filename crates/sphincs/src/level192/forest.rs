@@ -196,6 +196,8 @@ fn order_tops(bit: bool, current: Digest, sibling: Digest) -> [Digest; 2] {
 
 /// Builds one coordinate at a time, retaining only its selected opening and two top nodes.
 /// Chain secrets and unselected tree nodes are discarded as soon as their parent is known.
+// Out of line, so its buffers do not share one stack frame with the rest of signing.
+#[inline(never)]
 pub(super) fn forest_sign(
     pp: &Pp,
     master: &MasterSecret,

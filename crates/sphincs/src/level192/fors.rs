@@ -60,6 +60,8 @@ fn node(
     )
 }
 
+// Out of line, so its buffers do not share one stack frame with the rest of signing.
+#[inline(never)]
 pub(super) fn fors_sign(
     pp: &Pp,
     seed: &MasterSecret,

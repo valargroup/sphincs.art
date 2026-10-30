@@ -121,6 +121,8 @@ impl XmssTree {
     }
 
     /// The authentication path of a leaf, which must be kept.
+    // Out of line, so its buffers do not share one stack frame with the rest of signing.
+    #[inline(never)]
     pub(super) fn path(&self, pp: &Pp, master: &MasterSecret, leaf: u64) -> Vec<Digest> {
         assert!(self.contains(leaf));
         let local = (leaf - self.start) as usize;
@@ -170,6 +172,8 @@ pub(super) fn tree_fold(pp: &Pp, key: &OtsKey, leaf: Digest, path: &[Digest]) ->
 
 /// Builds a root and one authentication path with one pending left node per height.
 /// Every leaf is generated once; completed subtrees are discarded after saving any needed sibling.
+// Out of line, so its buffers do not share one stack frame with the rest of signing.
+#[inline(never)]
 pub(super) fn layer_path(
     pp: &Pp,
     master: &MasterSecret,

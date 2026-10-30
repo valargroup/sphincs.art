@@ -75,6 +75,8 @@ pub(super) fn codeword(digest: &Digest) -> Option<[u8; V]> {
 }
 
 /// The least admissible encoding, returning failure if the finite counter space is exhausted.
+// Out of line, so its buffers do not share one stack frame with the rest of signing.
+#[inline(never)]
 pub(super) fn wots_sign_limited(
     pp: &Pp,
     master: &MasterSecret,
