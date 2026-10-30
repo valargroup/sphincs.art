@@ -57,9 +57,21 @@ fn reset_peak() {
 }
 
 fn main() {
-    let check = std::env::args().any(|arg| arg == "--check");
+    let args: Vec<_> = std::env::args().collect();
+    let check = args.iter().any(|arg| arg == "--check");
+    let cache_levels: usize = args
+        .iter()
+        .position(|arg| arg == "--cache-levels")
+        .map(|position| {
+            args.get(position + 1)
+                .expect("missing cache level")
+                .parse()
+                .expect("integer cache level")
+        })
+        .unwrap_or(0);
+    assert!(cache_levels <= 8, "cache level exceeds the kept height");
     println!(
-        "hash,shape,run,keygen_peak_bytes,key_heap_bytes,sign_peak_bytes,sign_ns,sha256,sha512,keccak,serialize_peak_bytes,signature_bytes,signature_capacity,signature_sha256"
+        "hash,shape,run,keygen_peak_bytes,key_heap_bytes,sign_peak_bytes,sign_ns,sha256,sha512,keccak,serialize_peak_bytes,signature_bytes,signature_capacity,signature_sha256,cache_levels"
     );
     for hash in HashFn::ALL {
         for (name, shape) in [
@@ -71,7 +83,13 @@ fn main() {
                 let message = [run + 40; 32];
                 let baseline = LIVE.load(Relaxed);
                 reset_peak();
-                let (sk, pk) = scheme::key_gen(&cfg, &[run; 32]);
+                let (sk, pk) = scheme::key_gen_with_cache(
+                    &cfg,
+                    &[run; 32],
+                    scheme::TreeCache::Recompute {
+                        levels: cache_levels,
+                    },
+                );
                 let keygen_peak = PEAK.load(Relaxed) - baseline;
                 let key_heap = LIVE.load(Relaxed) - baseline;
                 reset_peak();
@@ -91,10 +109,13 @@ fn main() {
                 assert_eq!(bytes.len(), cfg.sig_size());
                 scheme::verify(&cfg, &pk, &message, &sig).unwrap();
                 if check {
-                    let budget = match shape {
+                    let full_budget = match shape {
                         Shape::Pruned { .. } => 24 * 1024,
                         Shape::Layered => 28 * 1024,
                     };
+                    let removed_nodes: usize =
+                        (0..cache_levels).map(|level| 1 << (8 - level)).sum();
+                    let budget = full_budget - removed_nodes * scheme::N;
                     assert!(
                         sign_peak <= budget,
                         "signing heap exceeds {budget} bytes: {sign_peak}"
@@ -105,7 +126,7 @@ fn main() {
                     let digest = Sha256::digest(&bytes);
                     let fingerprint: String = digest.iter().map(|b| format!("{b:02x}")).collect();
                     println!(
-                        "{},{name},{run},{keygen_peak},{key_heap},{sign_peak},{elapsed},{},{},{},{serialize_peak},{},{},{fingerprint}",
+                        "{},{name},{run},{keygen_peak},{key_heap},{sign_peak},{elapsed},{},{},{},{serialize_peak},{},{},{fingerprint},{cache_levels}",
                         hash.name(),
                         sign_counts.sha256,
                         sign_counts.sha512,

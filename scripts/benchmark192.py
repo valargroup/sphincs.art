@@ -52,11 +52,17 @@ def main(argv=None):
     parser.add_argument("--heights", default="20,22,24,26,28")
     parser.add_argument("--shapes", default="pruned,layered")
     parser.add_argument("--variants", default="forest,fors")
+    parser.add_argument("--kept-height", type=int, default=0,
+                        help="override the pruned kept height; zero uses max(12, h/2)")
+    parser.add_argument("--cache-levels", type=int, default=0,
+                        help="192-bit tree levels regenerated during signing instead of retained")
     parser.add_argument("--runs", type=int, default=3)
     parser.add_argument("--messages", type=int, default=3)
     parser.add_argument("--verify-iters", type=int, default=1000)
     args = parser.parse_args(argv)
     assert args.runs >= 3 and args.messages >= 1 and args.verify_iters >= 1
+    if args.cache_levels < 0 or (args.cache_levels and args.families != "192"):
+        parser.error("cache levels require family 192 and a nonnegative count")
     destination = args.output.expanduser().resolve()
     if destination.is_relative_to(ROOT):
         parser.error("raw benchmark output must be outside the checkout")
@@ -87,7 +93,7 @@ def main(argv=None):
         binaries = [a["executable"] for a in artifacts if a.get("reason") == "compiler-artifact" and a.get("target", {}).get("name") == "configurations" and a.get("executable")]
         assert len(set(binaries)) == 1
         command = [binaries[0]]
-        for key in ("families", "hashes", "heights", "shapes", "variants", "runs", "messages", "verify_iters"):
+        for key in ("families", "hashes", "heights", "shapes", "variants", "runs", "messages", "verify_iters", "kept_height", "cache_levels"):
             command += ["--" + key.replace("_", "-"), str(getattr(args, key))]
         metadata.update(status="running", started_utc=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
                         load_average_start=list(os.getloadavg()), logical_cpus=os.cpu_count())

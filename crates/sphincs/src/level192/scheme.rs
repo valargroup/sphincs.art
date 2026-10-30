@@ -169,7 +169,34 @@ pub fn configured_seed(cfg: &Config, seed: &MasterSecret) -> MasterSecret {
         ],
     )
 }
+/// Controls retained tree memory without changing keys, signatures, or signing-use limits.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum TreeCache {
+    /// Retain every node of the kept subtree for signing without leaf recomputation.
+    #[default]
+    Full,
+    /// Omit the bottom `levels` of nodes and regenerate their authentication paths when signing.
+    /// Each signature regenerates `2^levels` leaves; `levels` must not exceed the kept height.
+    Recompute { levels: usize },
+}
+
 pub fn key_gen(cfg: &Config, seed: &MasterSecret) -> (SecretKey, PublicKey) {
+    key_gen_with_cache(cfg, seed, TreeCache::Full)
+}
+
+/// Generates the same key as `key_gen`, retaining only the requested tree nodes.
+/// The cache policy is an implementation choice and is deliberately absent from seed derivation.
+/// Panics if the omitted levels exceed the configuration's kept height.
+pub fn key_gen_with_cache(
+    cfg: &Config,
+    seed: &MasterSecret,
+    cache: TreeCache,
+) -> (SecretKey, PublicKey) {
+    let uncached_levels = match cache {
+        TreeCache::Full => 0,
+        TreeCache::Recompute { levels } => levels,
+    };
+    assert!(uncached_levels <= cfg.kept(), "cache exceeds kept height");
     let master = configured_seed(cfg, seed);
     let public_param = th(
         &Pp::new(cfg, [0; N]),
@@ -182,23 +209,31 @@ pub fn key_gen(cfg: &Config, seed: &MasterSecret) -> (SecretKey, PublicKey) {
     let start = (u64::from_le_bytes(public_param[..8].try_into().unwrap())
         & ((1 << (height - b)) - 1))
         << b;
-    let leaves = (0..1u64 << b)
-        .map(|j| {
-            wots_leaf(
-                &pp,
-                &master,
-                &OtsKey {
-                    layer,
-                    tree: 0,
-                    leaf: (start + j) as u32,
-                },
-            )
-        })
-        .collect();
+    let leaves = (0..1u64 << b).map(|j| {
+        wots_leaf(
+            &pp,
+            &master,
+            &OtsKey {
+                layer,
+                tree: 0,
+                leaf: (start + j) as u32,
+            },
+        )
+    });
     let surrogates = (b..height)
         .map(|level| th(&pp, &tweak(TWEAK_SURROGATE, level as u32, 0), &master))
         .collect();
-    let top = XmssTree::from_leaves(&pp, layer, 0, height, b, start, leaves, surrogates);
+    let top = XmssTree::from_leaves(
+        &pp,
+        layer,
+        0,
+        height,
+        b,
+        start,
+        uncached_levels,
+        leaves,
+        surrogates,
+    );
     let sk = SecretKey {
         cfg: *cfg,
         pp,
@@ -307,7 +342,7 @@ pub(super) fn sign_with_limits(
         let (counter, wots) = wots_sign_limited(pp, &sk.master, &key, &payload, encoding_limit)
             .ok_or(SignError::EncodingExhausted)?;
         let path = if layer == top {
-            sk.top.path(u64::from(key.leaf))
+            sk.top.path(pp, &sk.master, u64::from(key.leaf))
         } else {
             let (root, path) = layer_path(pp, &sk.master, &key, height);
             payload = root.to_vec();

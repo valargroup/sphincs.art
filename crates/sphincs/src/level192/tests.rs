@@ -6,6 +6,92 @@ use super::*;
 fn config(hash: HashFn, variant: Variant) -> Config {
     Config::new(hash, 20, Shape::Pruned { b: 8 }, variant)
 }
+
+#[test]
+fn cache_policies_preserve_keys_and_signatures() {
+    for hash in HashFn::ALL {
+        for variant in Variant::ALL {
+            for (h, shape) in [
+                (20, Shape::Pruned { b: 8 }),
+                (28, Shape::Pruned { b: 8 }),
+                (20, Shape::Layered),
+            ] {
+                let cfg = Config::new(hash, h, shape, variant);
+                let seed = [19; 32];
+                let before = hash_counts();
+                let (full, public) = key_gen(&cfg, &seed);
+                let keygen_counts = hash_counts() - before;
+                let message = b"cache policy must preserve every signature byte";
+                let expected = sign(&full, message).unwrap().to_bytes();
+                for levels in [0, 2, cfg.kept()] {
+                    let before = hash_counts();
+                    let (small, small_public) =
+                        key_gen_with_cache(&cfg, &seed, TreeCache::Recompute { levels });
+                    assert_eq!(hash_counts() - before, keygen_counts);
+                    assert_eq!(small_public, public);
+                    let signature = sign(&small, message).unwrap();
+                    assert_eq!(signature.to_bytes(), expected, "{cfg:?}, {levels}");
+                    verify(&cfg, &public, message, &signature).unwrap();
+                }
+            }
+        }
+    }
+    let cfg = config(HashFn::Sha2, Variant::Forest);
+    assert!(
+        std::panic::catch_unwind(|| {
+            key_gen_with_cache(&cfg, &[0; 32], TreeCache::Recompute { levels: 9 })
+        })
+        .is_err()
+    );
+}
+
+#[test]
+fn recomputed_paths_match_full_tree_at_all_offsets() {
+    for hash in HashFn::ALL {
+        let pp = Pp::new(&config(hash, Variant::Forest), [17; N]);
+        let seed = [23; 32];
+        for start in [0, 40, 120] {
+            let key = OtsKey {
+                layer: 1,
+                tree: 19,
+                leaf: 0,
+            };
+            let leaves =
+                || (start..start + 8).map(|leaf| wots_leaf(&pp, &seed, &OtsKey { leaf, ..key }));
+            let full = XmssTree::from_leaves(
+                &pp,
+                key.layer,
+                key.tree,
+                7,
+                3,
+                u64::from(start),
+                0,
+                leaves(),
+                vec![[29; N]; 4],
+            );
+            for cached_from in 0..=3 {
+                let small = XmssTree::from_leaves(
+                    &pp,
+                    key.layer,
+                    key.tree,
+                    7,
+                    3,
+                    u64::from(start),
+                    cached_from,
+                    leaves(),
+                    vec![[29; N]; 4],
+                );
+                assert_eq!(small.root(), full.root());
+                for leaf in start..start + 8 {
+                    assert_eq!(
+                        small.path(&pp, &seed, u64::from(leaf)),
+                        full.path(&pp, &seed, u64::from(leaf))
+                    );
+                }
+            }
+        }
+    }
+}
 fn hex(bytes: &[u8]) -> String {
     bytes.iter().map(|b| format!("{b:02x}")).collect()
 }
@@ -396,15 +482,15 @@ fn streamed_layer_paths_match_the_cached_tree() {
                 tree: 19,
                 leaf: 0,
             };
-            let leaves = (0..1u32 << height)
-                .map(|leaf| wots_leaf(&pp, &[23; 32], &OtsKey { leaf, ..key }))
-                .collect();
+            let leaves =
+                (0..1u32 << height).map(|leaf| wots_leaf(&pp, &[23; 32], &OtsKey { leaf, ..key }));
             let reference = XmssTree::from_leaves(
                 &pp,
                 key.layer,
                 key.tree,
                 height,
                 height,
+                0,
                 0,
                 leaves,
                 Vec::new(),
@@ -424,7 +510,7 @@ fn streamed_layer_paths_match_the_cached_tree() {
             for leaf in selected {
                 let (root, path) = layer_path(&pp, &[23; 32], &OtsKey { leaf, ..key }, height);
                 assert_eq!(root, reference.root());
-                assert_eq!(path, reference.path(u64::from(leaf)));
+                assert_eq!(path, reference.path(&pp, &[23; 32], u64::from(leaf)));
             }
         }
     }

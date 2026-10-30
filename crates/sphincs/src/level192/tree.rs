@@ -22,12 +22,15 @@ pub(super) fn xmss_node(
 /// A tree of one layer: its kept subtree's levels and the surrogates above it.
 #[derive(Clone, Debug)]
 pub(super) struct XmssTree {
+    layer: usize,
+    tree: u32,
     height: usize,
     /// Height of the kept subtree; `b = height` keeps the whole tree.
     b: usize,
     /// The first leaf of the kept subtree.
     start: u64,
-    /// The kept subtree, level 0 being its `2^b` leaves.
+    /// Bottom levels are regenerated on demand; stored levels begin at `cached_from`.
+    cached_from: usize,
     levels: Vec<Vec<Digest>>,
     /// The siblings of the path at levels `b..height`, surrogates (no secret below them).
     surrogates: Vec<Digest>,
@@ -43,48 +46,66 @@ impl XmssTree {
         height: usize,
         b: usize,
         start: u64,
-        leaves: Vec<Digest>,
+        cached_from: usize,
+        leaves: impl IntoIterator<Item = Digest>,
         surrogates: Vec<Digest>,
     ) -> Self {
-        assert!(b <= height && start.is_multiple_of(1 << b));
-        assert_eq!(leaves.len(), 1 << b);
+        assert!(cached_from <= b && b <= height && start.is_multiple_of(1 << b));
         assert_eq!(surrogates.len(), height - b);
-        let mut levels = vec![leaves];
-        for level in 1..=b {
-            let below = &levels[level - 1];
-            let first = start >> level;
-            let up = (0..below.len() / 2)
-                .map(|j| {
-                    xmss_node(
-                        pp,
-                        layer,
-                        tree,
-                        level,
-                        first + j as u64,
-                        &below[2 * j],
-                        &below[2 * j + 1],
-                    )
-                })
-                .collect();
-            levels.push(up);
+        let mut levels: Vec<_> = (cached_from..=b)
+            .map(|level| vec![[0; N]; 1 << (b - level)])
+            .collect();
+        let mut pending = [[0; N]; crate::MAX_H];
+        let mut count = 0;
+        for (position, mut node) in leaves.into_iter().enumerate() {
+            assert!(position < 1 << b, "too many tree leaves");
+            count += 1;
+            let mut index = start + position as u64;
+            for level in 0..=b {
+                if level >= cached_from {
+                    levels[level - cached_from][position >> level] = node;
+                }
+                if level == b {
+                    break;
+                }
+                if index & 1 == 0 {
+                    pending[level] = node;
+                    break;
+                }
+                node = xmss_node(
+                    pp,
+                    layer,
+                    tree,
+                    level + 1,
+                    index >> 1,
+                    &pending[level],
+                    &node,
+                );
+                index >>= 1;
+            }
         }
-        let root = surrogates
-            .iter()
-            .enumerate()
-            .fold(levels[b][0], |node, (t, sibling)| {
-                let level = b + t;
-                let j = start >> level;
-                let (left, right) = if j & 1 == 0 {
-                    (node, *sibling)
-                } else {
-                    (*sibling, node)
-                };
-                xmss_node(pp, layer, tree, level + 1, j >> 1, &left, &right)
-            });
+        assert_eq!(count, 1 << b, "not enough tree leaves");
+        let root =
+            surrogates
+                .iter()
+                .enumerate()
+                .fold(levels[b - cached_from][0], |node, (t, sibling)| {
+                    let level = b + t;
+                    let j = start >> level;
+                    let (left, right) = if j & 1 == 0 {
+                        (node, *sibling)
+                    } else {
+                        (*sibling, node)
+                    };
+                    xmss_node(pp, layer, tree, level + 1, j >> 1, &left, &right)
+                });
         Self {
+            layer,
+            tree,
             height,
             b,
             start,
+            cached_from,
             levels,
             surrogates,
             root,
@@ -100,18 +121,27 @@ impl XmssTree {
     }
 
     /// The authentication path of a leaf, which must be kept.
-    pub(super) fn path(&self, leaf: u64) -> Vec<Digest> {
+    pub(super) fn path(&self, pp: &Pp, master: &MasterSecret, leaf: u64) -> Vec<Digest> {
         assert!(self.contains(leaf));
         let local = (leaf - self.start) as usize;
-        (0..self.height)
-            .map(|level| {
-                if level < self.b {
-                    self.levels[level][(local >> level) ^ 1]
-                } else {
-                    self.surrogates[level - self.b]
-                }
-            })
-            .collect()
+        let mut path = Vec::with_capacity(self.height);
+        if self.cached_from != 0 {
+            let key = OtsKey {
+                layer: self.layer,
+                tree: self.tree,
+                leaf: leaf as u32,
+            };
+            let (_, lower) = subtree_path(pp, master, &key, self.cached_from);
+            path.extend_from_slice(&lower);
+        }
+        path.extend((self.cached_from..self.height).map(|level| {
+            if level < self.b {
+                self.levels[level - self.cached_from][(local >> level) ^ 1]
+            } else {
+                self.surrogates[level - self.b]
+            }
+        }));
+        path
     }
 }
 
@@ -147,9 +177,21 @@ pub(super) fn layer_path(
     height: usize,
 ) -> (Digest, Vec<Digest>) {
     assert!(height <= crate::MAX_H && u64::from(key.leaf) < 1u64 << height);
+    subtree_path(pp, master, key, height)
+}
+
+/// Regenerates the aligned subtree containing `key.leaf`, keeping only its path and pending nodes.
+fn subtree_path(
+    pp: &Pp,
+    master: &MasterSecret,
+    key: &OtsKey,
+    height: usize,
+) -> (Digest, Vec<Digest>) {
+    assert!(height <= crate::MAX_H);
     let mut left_nodes = [[0; N]; crate::MAX_H];
     let mut path = vec![[0; N]; height];
-    for leaf in 0..1u32 << height {
+    let first = key.leaf & !((1 << height) - 1);
+    for leaf in first..first + (1u32 << height) {
         let mut node = wots_leaf(pp, master, &OtsKey { leaf, ..*key });
         let mut index = leaf;
         for level in 0..=height {

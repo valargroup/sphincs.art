@@ -18,7 +18,8 @@ use fors::*;
 use hashing::*;
 pub use hashing::{HashCounts, HashFn, hash_counts};
 pub use scheme::{
-    PublicKey, SecretKey, SignError, Signature, configured_seed, key_gen, sign, verify,
+    PublicKey, SecretKey, SignError, Signature, TreeCache, configured_seed, key_gen,
+    key_gen_with_cache, sign, verify,
 };
 use tree::*;
 use wots::*;

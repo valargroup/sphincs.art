@@ -164,6 +164,30 @@ tree. These changes preserve signature bytes, addresses and hash-operation
 counts. The top tree remains cached in the secret key; its memory still grows
 with the kept height.
 
+`key_gen_with_cache` accepts `TreeCache::Recompute { levels }` to omit the bottom
+tree levels from the cache. Each signature regenerates the aligned subtree of
+`2^levels` leaves containing its signing location. Key generation streams leaves
+through pending nodes, so the omitted levels are never allocated. The default
+`key_gen` retains the full kept subtree. Both policies produce identical public
+keys, signature bytes and signing-use limits; this setting is not part of the
+configured seed.
+
+For a height-20 SHA2 forest key pruned to height 8, regenerating two levels keeps
+3,336 bytes of tree values instead of 12,552. Signing regenerates four WOTS leaves
+and three internal nodes: 3,072 additional SHA-256 compressions and 79 additional
+SHA-512 compressions. Verification and signature size remain unchanged.
+
+```rust
+use sphincs::level192::{self, Config, HashFn, Shape, TreeCache, Variant};
+
+let cfg = Config::new(HashFn::Sha2, 20, Shape::Pruned { b: 8 }, Variant::Forest);
+// Supply 32 bytes from the application's secure RNG; do not use this example seed.
+let seed = [0u8; 32];
+let (secret, public) = level192::key_gen_with_cache(
+    &cfg, &seed, TreeCache::Recompute { levels: 2 },
+);
+```
+
 `Signature::write_to` emits the existing wire format to a `std::io::Write`
 destination without allocating another signature buffer. A write failure may
 leave a partial signature in the destination. `encoded_len` reports the exact
@@ -173,6 +197,7 @@ Run the allocation regression check with:
 
 ```sh
 cargo run --locked --release -p sphincs --example memory192 -- --check
+cargo run --locked --release -p sphincs --example memory192 -- --check --cache-levels 2
 ```
 
 The example covers both hash backends for height-20 forest keys, pruned at kept
@@ -182,6 +207,8 @@ and a signature fingerprint, and enforces signing-heap budgets of 24 KiB and
 Stack, static data, allocator overhead and application buffers are excluded;
 this is not a total-RAM bound or hardware-wallet qualification. The example's
 local timing observations also include allocation instrumentation overhead.
+With `--cache-levels`, the heap budget is reduced by the omitted tree values.
+The CPU runner accepts `--kept-height 8 --cache-levels 2` for the same configuration.
 
 ## Credits
 

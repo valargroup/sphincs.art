@@ -21,7 +21,7 @@ fn main() {
     let args: Vec<String> = std::env::args().collect();
     if args.iter().any(|s| s == "--help") {
         println!(
-            "configurations --families 128,192 --hashes Keccak-256,BLAKE2s,SHA-256,SHAKE256,SHA2 --heights 20,22,24,26,28 --shapes pruned,layered --variants forest,fors --runs 3 --messages 3 --verify-iters 1000"
+            "configurations --families 128,192 --hashes Keccak-256,BLAKE2s,SHA-256,SHAKE256,SHA2 --heights 20,22,24,26,28 --shapes pruned,layered --variants forest,fors --kept-height 0 --cache-levels 0 --runs 3 --messages 3 --verify-iters 1000"
         );
         return;
     }
@@ -34,6 +34,16 @@ fn main() {
     let heights = option(&args, "--heights", "20,22,24,26,28");
     let shapes = option(&args, "--shapes", "pruned,layered");
     let variants = option(&args, "--variants", "forest,fors");
+    let kept_height: usize = option(&args, "--kept-height", "0")
+        .parse()
+        .expect("integer kept height");
+    let cache_levels: usize = option(&args, "--cache-levels", "0")
+        .parse()
+        .expect("integer cache level");
+    assert!(
+        cache_levels == 0 || families == "192",
+        "partial cache requires family 192"
+    );
     let runs: usize = option(&args, "--runs", "3").parse().expect("integer runs");
     let messages: usize = option(&args, "--messages", "3")
         .parse()
@@ -47,7 +57,16 @@ fn main() {
             continue;
         }
         for (shape_name, shape) in [
-            ("pruned", legacy::Shape::Pruned { b: (h / 2).max(12) }),
+            (
+                "pruned",
+                legacy::Shape::Pruned {
+                    b: if kept_height == 0 {
+                        (h / 2).max(12)
+                    } else {
+                        kept_height
+                    },
+                },
+            ),
             ("layered", legacy::Shape::Layered),
         ] {
             if !selected(&shapes, shape_name) {
@@ -67,7 +86,13 @@ fn main() {
                             let seed = std::array::from_fn(|i| (i + run * 37 + h) as u8);
                             let before = new::hash_counts();
                             let start = Instant::now();
-                            let (sk, pk) = new::key_gen(&cfg, black_box(&seed));
+                            let (sk, pk) = new::key_gen_with_cache(
+                                &cfg,
+                                black_box(&seed),
+                                new::TreeCache::Recompute {
+                                    levels: cache_levels,
+                                },
+                            );
                             let keygen = start.elapsed().as_nanos();
                             let key_counts = new::hash_counts() - before;
                             let mut signing = Vec::new();
@@ -105,7 +130,7 @@ fn main() {
                                 continue;
                             }
                             println!(
-                                "{{\"family\":192,\"hash\":\"{}\",\"variant\":\"{}\",\"h\":{},\"shape\":\"{}\",\"b\":{},\"run\":{},\"message_bytes\":32,\"signature_bytes\":{},\"keygen_ns\":{},\"sign_ns\":{:?},\"verify_ns\":{},\"verify_iterations\":{},\"keygen_counts\":{},\"sign_counts\":[{}],\"verify_counts\":{}}}",
+                                "{{\"family\":192,\"hash\":\"{}\",\"variant\":\"{}\",\"h\":{},\"shape\":\"{}\",\"b\":{},\"run\":{},\"message_bytes\":32,\"signature_bytes\":{},\"keygen_ns\":{},\"sign_ns\":{:?},\"verify_ns\":{},\"verify_iterations\":{},\"keygen_counts\":{},\"sign_counts\":[{}],\"verify_counts\":{},\"cache_levels\":{}}}",
                                 hash.name(),
                                 variant.name(),
                                 h,
@@ -119,7 +144,8 @@ fn main() {
                                 verify_iters,
                                 counts(key_counts),
                                 signing_counts.join(","),
-                                counts(verify_counts)
+                                counts(verify_counts),
+                                cache_levels
                             );
                         }
                     }
