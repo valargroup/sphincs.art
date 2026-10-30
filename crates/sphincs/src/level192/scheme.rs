@@ -58,8 +58,9 @@ impl Signature {
                 .sum::<usize>()
     }
 
-    /// Passes the wire format to `put` piece by piece, in order.
-    fn for_each_part(&self, mut put: impl FnMut(&[u8])) {
+    /// Passes the wire format to `put` piece by piece, in order, so a caller with little
+    /// memory can send the encoding out without building it in one buffer.
+    pub fn for_each_part(&self, mut put: impl FnMut(&[u8])) {
         put(&self.randomizer);
         match &self.opening {
             Opening::Forest(open) => {
