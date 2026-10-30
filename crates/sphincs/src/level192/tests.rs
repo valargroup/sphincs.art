@@ -8,6 +8,41 @@ fn config(hash: HashFn, variant: Variant) -> Config {
 }
 
 #[test]
+fn packed_encoding_matches_expanded_digits() {
+    fn reference(digest: &Digest) -> Option<[u8; V]> {
+        let digits: [u8; V] = std::array::from_fn(|i| (digest[i / 4] >> (2 * (i % 4))) & 3);
+        (digits
+            .iter()
+            .map(|&digit| usize::from(digit))
+            .sum::<usize>()
+            == TARGET_SUM)
+            .then_some(digits)
+    }
+    let mut accepted = 0;
+    for suffix in 0..=u16::MAX {
+        let mut digest = [0xaa; N];
+        digest[N - 2..].copy_from_slice(&suffix.to_le_bytes());
+        for _ in 0..3 {
+            let expected = reference(&digest);
+            accepted += usize::from(expected.is_some());
+            assert_eq!(codeword(&digest), expected);
+            digest.rotate_left(8);
+        }
+    }
+    assert!(accepted > 0 && accepted < 3 * 65536);
+    for (low_digit, valid) in [(1, false), (2, true), (3, false)] {
+        let mut digest = [0xaa; N];
+        digest[N - 2..].copy_from_slice(&[3, 3]);
+        digest[0] = (digest[0] & !3) | low_digit;
+        assert_eq!(
+            codeword(&digest).is_some(),
+            valid,
+            "sum below, at and above the target"
+        );
+    }
+}
+
+#[test]
 fn cache_policies_preserve_keys_and_signatures() {
     for hash in HashFn::ALL {
         for variant in Variant::ALL {

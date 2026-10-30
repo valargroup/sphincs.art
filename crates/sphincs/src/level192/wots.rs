@@ -70,8 +70,24 @@ pub(super) fn encode(pp: &Pp, key: &OtsKey, message: &[u8], c: u32) -> Option<[u
 
 /// The 192 digest bits as 96 chunks of 2 bits, little endian; a codeword if they sum to `T`.
 pub(super) fn codeword(digest: &Digest) -> Option<[u8; V]> {
-    let x: [u8; V] = std::array::from_fn(|i| (digest[i / 4] >> (2 * (i % 4))) & 3);
-    (x.iter().map(|&c| c as usize).sum::<usize>() == TARGET_SUM).then_some(x)
+    // Every two-bit digit contributes its low bit plus twice its high bit. Most candidates fail;
+    // inspect those packed bits before constructing the expanded signature positions.
+    let sum: u32 = digest
+        .as_chunks::<8>()
+        .0
+        .iter()
+        .map(|bytes| {
+            let word = u64::from_le_bytes(*bytes);
+            (word & 0x5555_5555_5555_5555).count_ones()
+                + 2 * (word & 0xaaaa_aaaa_aaaa_aaaa).count_ones()
+        })
+        .sum();
+    if sum != TARGET_SUM as u32 {
+        return None;
+    }
+    Some(std::array::from_fn(|i| {
+        (digest[i / 4] >> (2 * (i % 4))) & 3
+    }))
 }
 
 /// The least admissible encoding, returning failure if the finite counter space is exhausted.
