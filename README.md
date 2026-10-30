@@ -215,6 +215,53 @@ local timing observations also include allocation instrumentation overhead.
 With `--cache-levels`, the heap budget is reduced by the omitted tree values.
 The CPU runner accepts `--kept-height 8 --cache-levels 2` for the same configuration.
 
+### Public forest precomputation
+
+For a single-tree forest key, `prepare_forest` optionally generates public
+coordinate-tree nodes for every retained signing instance. The returned
+`PreparedForest` borrows the exact secret key that generated those nodes and
+exposes deterministic signing. Its private cache cannot be imported, modified,
+or paired with another key through the API. Parameters, public keys, signatures
+and signing-use limits are identical to the normal signer.
+
+For kept height 8, the public-node storage and per-signature work avoided are:
+
+| Coordinate-tree level cached | Public node values | SHA-256 compressions avoided | SHA-512 compressions avoided |
+|---|---:|---:|---:|
+| 3: two coordinate tops | 144 KiB | 92,160 | 4,500 |
+| 2: four nodes | 288 KiB | 138,240 | 6,732 |
+| 1: eight nodes | 576 KiB | 161,280 | 7,812 |
+| 0: sixteen super-child roots | 1,152 KiB | 172,800 | 8,280 |
+
+These SHA2 deltas apply independently of the retained Merkle-tree cache policy.
+Preparing all 256 instances costs 47,185,920 SHA-256 compressions and between
+2,260,992 and 2,304,000 SHA-512 compressions. This is additional setup work,
+separate from key generation. The normal signer does not prepare or retain this
+data automatically.
+
+```rust
+// `secret` is a single-tree forest key. The budget covers public node values.
+let prepared = level192::prepare_forest(&secret, 0, 2 * 1024 * 1024)
+    .expect("configuration and public-cache budget");
+let signature = prepared.sign(b"raw message bytes").expect("search exhausted");
+```
+
+The cache budget is checked before building any instance; unsupported variants,
+layered keys and invalid cache levels are rejected. This implementation holds
+the public values in ordinary allocated memory. It does not select PSRAM or
+provide an external flash/cache import API. External mutable storage would need
+separate authentication before permitting a reused WOTS key to sign a forest
+key recovered from it.
+
+The allocation example reports preparation cost, retained public-cache bytes,
+and total signing heap separately. With precomputation enabled it exercises
+single-tree keys only; other invocations retain the original coverage.
+
+```sh
+cargo run --locked --release -p sphincs --features hash-counts --example memory192 -- --check --hash SHA2 --cache-levels 2 --precompute-level 3
+cargo run --locked --release -p sphincs --features hash-counts --example memory192 -- --check --hash SHA2 --cache-levels 2 --precompute-level 0
+```
+
 ## Credits
 
 - [leanVM](https://github.com/leanEthereum/leanVM): the `sphincs` crate and the Lean security proof are adapted from it.

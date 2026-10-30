@@ -56,28 +56,47 @@ fn reset_peak() {
     PEAK.store(LIVE.load(Relaxed), Relaxed);
 }
 
+fn option<'a>(args: &'a [String], name: &str) -> Option<&'a str> {
+    args.iter().position(|arg| arg == name).map(|position| {
+        args.get(position + 1)
+            .expect("missing option value")
+            .as_str()
+    })
+}
+
 fn main() {
     let args: Vec<_> = std::env::args().collect();
     let check = args.iter().any(|arg| arg == "--check");
-    let cache_levels: usize = args
-        .iter()
-        .position(|arg| arg == "--cache-levels")
-        .map(|position| {
-            args.get(position + 1)
-                .expect("missing cache level")
-                .parse()
-                .expect("integer cache level")
-        })
-        .unwrap_or(0);
+    let cache_levels: usize = option(&args, "--cache-levels")
+        .unwrap_or("0")
+        .parse()
+        .expect("integer cache level");
+    let precompute_level: Option<usize> = option(&args, "--precompute-level")
+        .map(|value| value.parse().expect("integer precomputation level"));
+    let precompute_budget: usize = option(&args, "--precompute-budget")
+        .unwrap_or("2097152")
+        .parse()
+        .expect("integer precomputation budget");
+    let hash_filter = option(&args, "--hash");
+    assert!(
+        hash_filter.is_none_or(|name| HashFn::ALL.iter().any(|hash| hash.name() == name)),
+        "unknown hash"
+    );
     assert!(cache_levels <= 8, "cache level exceeds the kept height");
     println!(
-        "hash,shape,run,keygen_peak_bytes,key_heap_bytes,sign_peak_bytes,sign_ns,sha256,sha512,keccak,serialize_peak_bytes,signature_bytes,signature_capacity,signature_sha256,cache_levels"
+        "hash,shape,run,keygen_peak_bytes,key_heap_bytes,sign_peak_bytes,sign_ns,sha256,sha512,keccak,serialize_peak_bytes,signature_bytes,signature_capacity,signature_sha256,cache_levels,precompute_level,precompute_bytes,prepare_peak_bytes,prepare_ns,prepare_sha256,prepare_sha512,prepare_keccak,resident_bytes"
     );
     for hash in HashFn::ALL {
+        if hash_filter.is_some_and(|name| hash.name() != name) {
+            continue;
+        }
         for (name, shape) in [
             ("pruned-h20-b8", Shape::Pruned { b: 8 }),
             ("layered-8-6-6", Shape::Layered),
         ] {
+            if precompute_level.is_some() && shape == Shape::Layered {
+                continue;
+            }
             let cfg = Config::new(hash, 20, shape, Variant::Forest);
             for run in 0u8..=3 {
                 let message = [run + 40; 32];
@@ -95,7 +114,24 @@ fn main() {
                 reset_peak();
                 let before = scheme::hash_counts();
                 let start = Instant::now();
-                let sig = scheme::sign(&sk, &message).unwrap();
+                let prepared = precompute_level
+                    .map(|level| scheme::prepare_forest(&sk, level, precompute_budget).unwrap());
+                let prepare_ns = start.elapsed().as_nanos();
+                let prepare_counts = scheme::hash_counts() - before;
+                let prepare_peak = PEAK.load(Relaxed) - baseline;
+                let precompute_bytes = prepared
+                    .as_ref()
+                    .map_or(0, |prepared| prepared.cache_bytes());
+                let resident_bytes = LIVE.load(Relaxed) - baseline;
+                reset_peak();
+                let before = scheme::hash_counts();
+                let start = Instant::now();
+                let sig = if let Some(prepared) = &prepared {
+                    prepared.sign(&message)
+                } else {
+                    scheme::sign(&sk, &message)
+                }
+                .unwrap();
                 let elapsed = start.elapsed().as_nanos();
                 let sign_counts = scheme::hash_counts() - before;
                 let sign_peak = PEAK.load(Relaxed) - baseline;
@@ -115,7 +151,7 @@ fn main() {
                     };
                     let removed_nodes: usize =
                         (0..cache_levels).map(|level| 1 << (8 - level)).sum();
-                    let budget = full_budget - removed_nodes * scheme::N;
+                    let budget = full_budget - removed_nodes * scheme::N + precompute_bytes;
                     assert!(
                         sign_peak <= budget,
                         "signing heap exceeds {budget} bytes: {sign_peak}"
@@ -126,17 +162,22 @@ fn main() {
                     let digest = Sha256::digest(&bytes);
                     let fingerprint: String = digest.iter().map(|b| format!("{b:02x}")).collect();
                     println!(
-                        "{},{name},{run},{keygen_peak},{key_heap},{sign_peak},{elapsed},{},{},{},{serialize_peak},{},{},{fingerprint},{cache_levels}",
+                        "{},{name},{run},{keygen_peak},{key_heap},{sign_peak},{elapsed},{},{},{},{serialize_peak},{},{},{fingerprint},{cache_levels},{},{precompute_bytes},{prepare_peak},{prepare_ns},{},{},{},{resident_bytes}",
                         hash.name(),
                         sign_counts.sha256,
                         sign_counts.sha512,
                         sign_counts.keccak,
                         bytes.len(),
-                        bytes.capacity()
+                        bytes.capacity(),
+                        precompute_level.unwrap_or(4),
+                        prepare_counts.sha256,
+                        prepare_counts.sha512,
+                        prepare_counts.keccak,
                     );
                 }
                 drop(bytes);
                 drop(sig);
+                drop(prepared);
                 drop(sk);
                 assert_eq!(
                     LIVE.load(Relaxed),

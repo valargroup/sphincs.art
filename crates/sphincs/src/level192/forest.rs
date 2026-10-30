@@ -194,73 +194,164 @@ fn order_tops(bit: bool, current: Digest, sibling: Digest) -> [Digest; 2] {
     }
 }
 
+fn empty_opening() -> CoordOpening {
+    CoordOpening {
+        sub: std::array::from_fn(|_| SubOpening {
+            values: [[0; N]; CHILD_CHAINS],
+            path: [[0; N]; SUB_HEIGHT],
+        }),
+        top: [[0; N]; TOP_HEIGHT],
+    }
+}
+
+/// Generates an aligned group of super-children, retaining an opening only when requested.
+fn super_children(
+    pp: &Pp,
+    master: &MasterSecret,
+    idx: u64,
+    c: usize,
+    first: usize,
+    count: usize,
+    mark: Option<&CoordMark>,
+    open: &mut CoordOpening,
+) -> [Digest; SUPERS] {
+    assert!(first + count <= SUPERS);
+    let mut supers = [[0; N]; SUPERS];
+    for (local, super_leaf) in supers[..count].iter_mut().enumerate() {
+        let s = first + local;
+        let mut tops = [[[0; N]; 2]; SUBS];
+        for (j, sub_top) in tops.iter_mut().enumerate() {
+            let mut leaves = [[0; N]; CHILDREN];
+            for (a, leaf) in leaves.iter_mut().enumerate() {
+                let secrets = child_secrets(pp, master, idx, c, s, j, a);
+                let ends = std::array::from_fn(|i| {
+                    forest_chain(pp, idx, c, s, j, a, i, 0, CHAIN_TOP, secrets[i])
+                });
+                *leaf = child_leaf(pp, idx, c, s, j, a, &ends);
+                if let Some(mark) = mark.filter(|mark| s == mark.super_child && a == mark.child[j])
+                {
+                    let word = lut(mark.word[j]);
+                    open.sub[j].values = std::array::from_fn(|i| {
+                        forest_chain(
+                            pp,
+                            idx,
+                            c,
+                            s,
+                            j,
+                            a,
+                            i,
+                            0,
+                            CHAIN_TOP - word[i] as usize,
+                            secrets[i],
+                        )
+                    });
+                }
+            }
+            let mut path = [[0; N]; SUB_HEIGHT];
+            *sub_top = fold_opening(
+                &mut leaves,
+                mark.map_or(0, |mark| mark.child[j]),
+                &mut path,
+                |level, node, left, right| sub_node(pp, idx, c, s, j, level, node, left, right),
+            );
+            if mark.is_some_and(|mark| s == mark.super_child) {
+                open.sub[j].path = path;
+            }
+        }
+        *super_leaf = super_child(pp, idx, c, s, &tops);
+    }
+    supers
+}
+
+/// Appends one level of public coordinate-tree nodes for one instance. No chain secrets are kept.
+pub(super) fn precompute_instance(
+    pp: &Pp,
+    master: &MasterSecret,
+    idx: u64,
+    level: usize,
+    nodes: &mut Vec<Digest>,
+) {
+    assert!(level < TOP_HEIGHT);
+    for c in 0..COORDS {
+        let mut supers = super_children(pp, master, idx, c, 0, SUPERS, None, &mut empty_opening());
+        let mut width = SUPERS;
+        for height in 0..level {
+            for j in 0..width / 2 {
+                supers[j] = top_node(pp, idx, c, height, j, &supers[2 * j], &supers[2 * j + 1]);
+            }
+            width /= 2;
+        }
+        nodes.extend_from_slice(&supers[..width]);
+    }
+}
+
 /// Builds one coordinate at a time, retaining only its selected opening and two top nodes.
-/// Chain secrets and unselected tree nodes are discarded as soon as their parent is known.
 pub(super) fn forest_sign(
     pp: &Pp,
     master: &MasterSecret,
     idx: u64,
     marks: &[CoordMark; COORDS],
 ) -> (ForestKey, Box<ForestOpening>) {
+    forest_sign_precomputed(pp, master, idx, marks, None)
+}
+
+/// Cached nodes are generated internally and bound to the signing key by the prepared signer.
+pub(super) fn forest_sign_precomputed(
+    pp: &Pp,
+    master: &MasterSecret,
+    idx: u64,
+    marks: &[CoordMark; COORDS],
+    cached: Option<(usize, &[Digest])>,
+) -> (ForestKey, Box<ForestOpening>) {
+    if let Some((level, nodes)) = cached {
+        assert!(level < TOP_HEIGHT);
+        assert_eq!(nodes.len(), COORDS * (SUPERS >> level));
+    }
     let mut key = [[[0; N]; 2]; COORDS];
-    // Construct the boxed opening incrementally, avoiding a whole-opening stack temporary.
     let mut opening = Vec::with_capacity(COORDS);
     for (c, mark) in marks.iter().enumerate() {
-        let mut open = CoordOpening {
-            sub: std::array::from_fn(|_| SubOpening {
-                values: [[0; N]; CHILD_CHAINS],
-                path: [[0; N]; SUB_HEIGHT],
-            }),
-            top: [[0; N]; TOP_HEIGHT],
-        };
-        let mut supers = [[0; N]; SUPERS];
-        for (s, super_leaf) in supers.iter_mut().enumerate() {
-            let mut tops = [[[0; N]; 2]; SUBS];
-            for (j, sub_top) in tops.iter_mut().enumerate() {
-                let mut leaves = [[0; N]; CHILDREN];
-                for (a, leaf) in leaves.iter_mut().enumerate() {
-                    let secrets = child_secrets(pp, master, idx, c, s, j, a);
-                    let ends = std::array::from_fn(|i| {
-                        forest_chain(pp, idx, c, s, j, a, i, 0, CHAIN_TOP, secrets[i])
-                    });
-                    *leaf = child_leaf(pp, idx, c, s, j, a, &ends);
-                    if s == mark.super_child && a == mark.child[j] {
-                        let word = lut(mark.word[j]);
-                        open.sub[j].values = std::array::from_fn(|i| {
-                            forest_chain(
-                                pp,
-                                idx,
-                                c,
-                                s,
-                                j,
-                                a,
-                                i,
-                                0,
-                                CHAIN_TOP - word[i] as usize,
-                                secrets[i],
-                            )
-                        });
-                    }
+        let mut open = empty_opening();
+        let (first, count) = cached.map_or((0, SUPERS), |(level, _)| {
+            ((mark.super_child >> level) << level, 1 << level)
+        });
+        let mut supers = super_children(pp, master, idx, c, first, count, Some(mark), &mut open);
+        key[c] = if let Some((level, nodes)) = cached {
+            let mut width = count;
+            for height in 0..level {
+                open.top[height] = supers[((mark.super_child - first) >> height) ^ 1];
+                for j in 0..width / 2 {
+                    supers[j] = top_node(
+                        pp,
+                        idx,
+                        c,
+                        height,
+                        (first >> (height + 1)) + j,
+                        &supers[2 * j],
+                        &supers[2 * j + 1],
+                    );
                 }
-                let mut path = [[0; N]; SUB_HEIGHT];
-                *sub_top = fold_opening(
-                    &mut leaves,
-                    mark.child[j],
-                    &mut path,
-                    |level, node, left, right| sub_node(pp, idx, c, s, j, level, node, left, right),
-                );
-                if s == mark.super_child {
-                    open.sub[j].path = path;
-                }
+                width /= 2;
             }
-            *super_leaf = super_child(pp, idx, c, s, &tops);
-        }
-        key[c] = fold_opening(
-            &mut supers,
-            mark.super_child,
-            &mut open.top,
-            |level, node, left, right| top_node(pp, idx, c, level, node, left, right),
-        );
+            let selected = supers[0];
+            let cached_width = SUPERS >> level;
+            supers[..cached_width]
+                .copy_from_slice(&nodes[c * cached_width..(c + 1) * cached_width]);
+            debug_assert_eq!(supers[mark.super_child >> level], selected);
+            supers[mark.super_child >> level] = selected;
+            fold_opening(
+                &mut supers[..cached_width],
+                mark.super_child >> level,
+                &mut open.top[level..],
+                |height, node, left, right| top_node(pp, idx, c, height + level, node, left, right),
+            )
+        } else {
+            fold_opening(
+                &mut supers,
+                mark.super_child,
+                &mut open.top,
+                |level, node, left, right| top_node(pp, idx, c, level, node, left, right),
+            )
+        };
         opening.push(open);
     }
     (

@@ -1,6 +1,9 @@
 //! Key generation, raw-message signing, verification and exact-length serialization.
 use super::*;
 
+mod prepared;
+pub use prepared::{ForestPrecomputeError, PreparedForest, prepare_forest};
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct PublicKey {
     pub root: Digest,
@@ -302,6 +305,16 @@ pub(super) fn sign_with_limits(
     randomizer_limit: u64,
     encoding_limit: u64,
 ) -> Result<Signature, SignError> {
+    sign_with_precomputed(sk, message, randomizer_limit, encoding_limit, None)
+}
+
+fn sign_with_precomputed(
+    sk: &SecretKey,
+    message: &[u8],
+    randomizer_limit: u64,
+    encoding_limit: u64,
+    prepared: Option<&PreparedForest<'_>>,
+) -> Result<Signature, SignError> {
     let (cfg, pp) = (&sk.cfg, &sk.pp);
     let layers = cfg.layers();
     let top = layers.len() - 1;
@@ -322,7 +335,12 @@ pub(super) fn sign_with_limits(
         .ok_or(SignError::RandomizerExhausted)?;
     let (opening, mut payload) = match cfg.variant {
         Variant::Forest => {
-            let (key, opening) = forest_sign(pp, &sk.master, idx, &forest_marks(&digest, cfg.h));
+            let marks = forest_marks(&digest, cfg.h);
+            let (key, opening) = if let Some(prepared) = prepared {
+                forest_sign_precomputed(pp, &sk.master, idx, &marks, Some(prepared.instance(idx)))
+            } else {
+                forest_sign(pp, &sk.master, idx, &marks)
+            };
             (
                 Opening::Forest(opening),
                 key.as_flattened().as_flattened().to_vec(),

@@ -120,6 +120,10 @@ impl XmssTree {
         leaf >> self.b == self.start >> self.b
     }
 
+    pub(super) fn kept_leaves(&self) -> core::ops::Range<u64> {
+        self.start..self.start + (1u64 << self.b)
+    }
+
     /// The authentication path of a leaf, which must be kept.
     pub(super) fn path(&self, pp: &Pp, master: &MasterSecret, leaf: u64) -> Vec<Digest> {
         assert!(self.contains(leaf));

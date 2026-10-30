@@ -20,8 +20,8 @@ pub use hashing::hash_counts;
 use hashing::*;
 pub use hashing::{HashCounts, HashFn};
 pub use scheme::{
-    PublicKey, SecretKey, SignError, Signature, TreeCache, configured_seed, key_gen,
-    key_gen_with_cache, sign, verify,
+    ForestPrecomputeError, PreparedForest, PublicKey, SecretKey, SignError, Signature, TreeCache,
+    configured_seed, key_gen, key_gen_with_cache, prepare_forest, sign, verify,
 };
 use tree::*;
 use wots::*;

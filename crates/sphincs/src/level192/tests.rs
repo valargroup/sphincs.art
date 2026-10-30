@@ -445,6 +445,14 @@ fn signatures_match_independently_verified_vectors() {
 fn streamed_forest_openings_cover_every_branch() {
     for hash in HashFn::ALL {
         let pp = Pp::new(&config(hash, Variant::Forest), [17; N]);
+        let idx = (1 << 28) - 1;
+        let caches: Vec<_> = (0..TOP_HEIGHT)
+            .map(|level| {
+                let mut nodes = Vec::new();
+                precompute_instance(&pp, &[29; 32], idx, level, &mut nodes);
+                nodes
+            })
+            .collect();
         let mut expected = None;
         for selected in 0..forest::SUPERS {
             let marks = std::array::from_fn(|c| CoordMark {
@@ -458,9 +466,31 @@ fn streamed_forest_openings_cover_every_branch() {
                     (255 - selected * 11 - c * 3) as u8,
                 ],
             });
-            let idx = (1 << 28) - 1;
+            let before = hash_counts();
             let (key, opening) = forest_sign(&pp, &[29; 32], idx, &marks);
+            let full_counts = hash_counts() - before;
             assert_eq!(forest_recover(&pp, idx, &marks, &opening), key);
+            for (level, nodes) in caches.iter().enumerate() {
+                let before = hash_counts();
+                let (cached_key, cached_opening) =
+                    forest_sign_precomputed(&pp, &[29; 32], idx, &marks, Some((level, nodes)));
+                let cached_counts = hash_counts() - before;
+                assert_eq!(cached_key, key);
+                assert_eq!(
+                    cached_opening, opening,
+                    "{hash:?}, level {level}, selected {selected}"
+                );
+                if hash == HashFn::Sha2 {
+                    assert_eq!(
+                        full_counts - cached_counts,
+                        HashCounts {
+                            sha256: [172800, 161280, 138240, 92160][level],
+                            sha512: [8280, 7812, 6732, 4500][level],
+                            keccak: 0,
+                        }
+                    );
+                }
+            }
             if let Some(previous) = expected {
                 assert_eq!(
                     key, previous,
@@ -469,6 +499,58 @@ fn streamed_forest_openings_cover_every_branch() {
             }
             expected = Some(key);
         }
+    }
+}
+
+#[test]
+fn prepared_forest_matches_normal_signing_and_checks_its_budget() {
+    for hash in HashFn::ALL {
+        let cfg = config(hash, Variant::Forest);
+        let (secret, public) =
+            key_gen_with_cache(&cfg, &[3; 32], TreeCache::Recompute { levels: 2 });
+        let message = b"independent 192-bit reference\0message";
+        let expected = sign(&secret, message).unwrap().to_bytes();
+        for (level, bytes) in [(0, 1179648), (3, 147456)] {
+            let before = hash_counts();
+            assert!(matches!(prepare_forest(&secret, level, bytes - 1),
+                Err(ForestPrecomputeError::CacheBudgetExceeded { required_bytes }) if required_bytes == bytes));
+            assert_eq!(
+                hash_counts(),
+                before,
+                "budget failures must precede preparation"
+            );
+            let prepared = prepare_forest(&secret, level, bytes).unwrap();
+            let setup = hash_counts() - before;
+            if hash == HashFn::Sha2 {
+                assert_eq!(
+                    setup,
+                    HashCounts {
+                        sha256: 47185920,
+                        sha512: if level == 0 { 2260992 } else { 2304000 },
+                        keccak: 0
+                    }
+                );
+            }
+            assert_eq!(prepared.cache_bytes(), bytes);
+            let signature = prepared.sign(message).unwrap();
+            assert_eq!(signature.to_bytes(), expected);
+            verify(&cfg, &public, message, &signature).unwrap();
+            assert!(verify(&cfg, &public, b"changed", &signature).is_err());
+        }
+        assert!(matches!(
+            prepare_forest(&secret, TOP_HEIGHT, usize::MAX),
+            Err(ForestPrecomputeError::InvalidLevel)
+        ));
+    }
+    for cfg in [
+        config(HashFn::Sha2, Variant::Fors),
+        Config::new(HashFn::Sha2, 20, Shape::Layered, Variant::Forest),
+    ] {
+        let (secret, _) = key_gen(&cfg, &[3; 32]);
+        assert!(matches!(
+            prepare_forest(&secret, 0, usize::MAX),
+            Err(ForestPrecomputeError::UnsupportedConfiguration)
+        ));
     }
 }
 
