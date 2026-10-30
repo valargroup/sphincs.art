@@ -328,6 +328,7 @@ fn sign_with_precomputed(
     let (cfg, pp) = (&sk.cfg, &sk.pp);
     let layers = cfg.layers();
     let top = layers.len() - 1;
+    let below_top: usize = layers[..top].iter().sum();
     let material = randomizer_material(pp, &sk.master, message);
     let base: Randomizer = material[..N].try_into().unwrap();
     let mut step: Randomizer = material[N..].try_into().unwrap();
@@ -339,7 +340,7 @@ fn sign_with_precomputed(
             let digest = state.finish::<64>(&rho);
             let idx = bits(&digest, 0, cfg.h) as u64;
             sk.top
-                .contains(idx >> cfg.below(top))
+                .contains(idx >> below_top)
                 .then_some((rho, digest, idx))
         })
         .ok_or(SignError::RandomizerExhausted)?;
@@ -368,8 +369,9 @@ fn sign_with_precomputed(
         }
     };
     let mut signed = Vec::with_capacity(layers.len());
+    let mut layer_index = idx;
     for (layer, &height) in layers.iter().enumerate() {
-        let key = OtsKey::at(layer, height, idx >> cfg.below(layer));
+        let key = OtsKey::at(layer, height, layer_index);
         let (counter, wots) = wots_sign_limited(pp, &sk.master, &key, &payload, encoding_limit)
             .ok_or(SignError::EncodingExhausted)?;
         let path = if layer == top {
@@ -384,6 +386,7 @@ fn sign_with_precomputed(
             wots,
             path,
         });
+        layer_index >>= height;
     }
     Ok(Signature {
         randomizer: rho,
