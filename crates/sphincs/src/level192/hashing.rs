@@ -194,6 +194,14 @@ impl State {
     }
 }
 
+/// Finalizes a concrete SHA2 provider, keeping the larger SHAKE state out of its calling path.
+fn finish_sha2<D: ShaDigest, const L: usize>(mut state: D, tail: &[u8]) -> [u8; L] {
+    ShaDigest::update(&mut state, tail);
+    state.finalize()[..L]
+        .try_into()
+        .expect("requested SHA2 output length")
+}
+
 /// Packs the fixed-width addressed transcript before handing it to the hash provider.
 fn addressed_prefix(pp: &Pp, tw: &Tweak) -> [u8; PREFIX_LEN] {
     let mut prefix = [0; PREFIX_LEN];
@@ -207,11 +215,28 @@ fn addressed_prefix(pp: &Pp, tw: &Tweak) -> [u8; PREFIX_LEN] {
 /// Hashes a single addressed payload without cloning a state intended for repeated searches.
 fn addressed_hash<const L: usize>(pp: &Pp, tw: &Tweak, payload: &[u8]) -> [u8; L] {
     let kind = kind(tw);
-    let mut state = State::new(pp.hash, kind);
-    state.update(&addressed_prefix(pp, tw));
-    state.update(payload);
     count(cost(pp.hash, kind, PREFIX_LEN + payload.len(), L));
-    state.finish()
+    let prefix = addressed_prefix(pp, tw);
+    match (pp.hash, kind) {
+        (HashFn::Sha2, Primitive::Small) => {
+            let mut state = Sha256::new();
+            ShaDigest::update(&mut state, prefix);
+            finish_sha2(state, payload)
+        }
+        (HashFn::Sha2, Primitive::Wide) => {
+            let mut state = Sha512::new();
+            ShaDigest::update(&mut state, prefix);
+            finish_sha2(state, payload)
+        }
+        (HashFn::Shake256, _) => {
+            let mut state = Shake256::default();
+            Update::update(&mut state, &prefix);
+            Update::update(&mut state, payload);
+            let mut out = [0; L];
+            state.finalize_xof().read(&mut out);
+            out
+        }
+    }
 }
 
 /// A cached prefix: accounting charges whole input blocks once, and each completed tail separately.
@@ -261,9 +286,17 @@ impl Midstate {
     }
     pub(crate) fn finish<const L: usize>(&self, tail: &[u8]) -> [u8; L] {
         count(cost(self.hash, self.kind, self.rest + tail.len(), L));
-        let mut h = self.state.clone();
-        h.update(tail);
-        h.finish()
+        match &self.state {
+            State::Small(state) => finish_sha2(state.clone(), tail),
+            State::Wide(state) => finish_sha2(state.clone(), tail),
+            State::Shake(state) => {
+                let mut h = state.clone();
+                Update::update(&mut h, tail);
+                let mut out = [0; L];
+                h.finalize_xof().read(&mut out);
+                out
+            }
+        }
     }
 }
 
