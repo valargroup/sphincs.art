@@ -55,14 +55,14 @@ def main(argv=None):
     parser.add_argument("--kept-height", type=int, default=0,
                         help="override the pruned kept height; zero uses max(12, h/2)")
     parser.add_argument("--cache-levels", type=int, default=0,
-                        help="192-bit tree levels regenerated during signing instead of retained")
+                        help="tree levels regenerated during signing instead of retained, for either family")
     parser.add_argument("--runs", type=int, default=3)
     parser.add_argument("--messages", type=int, default=3)
     parser.add_argument("--verify-iters", type=int, default=1000)
     args = parser.parse_args(argv)
     assert args.runs >= 3 and args.messages >= 1 and args.verify_iters >= 1
-    if args.cache_levels < 0 or (args.cache_levels and args.families != "192"):
-        parser.error("cache levels require family 192 and a nonnegative count")
+    if args.cache_levels < 0:
+        parser.error("cache levels require a nonnegative count")
     destination = args.output.expanduser().resolve()
     if destination.is_relative_to(ROOT):
         parser.error("raw benchmark output must be outside the checkout")
