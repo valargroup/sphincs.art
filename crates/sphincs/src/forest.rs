@@ -26,19 +26,10 @@ pub struct CoordMark {
     pub word: [u8; SUBS],
 }
 
-/// The opening of one sub-tree: the 6 revealed chain values and the 3 authentication nodes.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct SubOpening {
-    pub values: [Digest; CHILD_CHAINS],
-    pub path: [Digest; SUB_HEIGHT],
-}
-
-/// The opening of one coordinate: both sub-trees, then the 4 authentication nodes of the top tree.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct CoordOpening {
-    pub sub: [SubOpening; SUBS],
-    pub top: [Digest; TOP_HEIGHT],
-}
+/// Six revealed chain values and the three authentication nodes of one small tree.
+pub type SubOpening = crate::bounded::SubOpening<N>;
+/// Both small-tree openings and the four authentication nodes of one coordinate.
+pub type CoordOpening = crate::bounded::CoordOpening<N>;
 
 /// What a signature carries for the forest: `COORDS * 22` values.
 pub type ForestOpening = [CoordOpening; COORDS];
@@ -157,6 +148,53 @@ fn top_node(
 /// The two top nodes in index order, from the one a fold reached and the last path element.
 fn order_tops(bit: bool, current: Digest, sibling: Digest) -> [Digest; 2] {
     if bit { [sibling, current] } else { [current, sibling] }
+}
+
+use crate::bounded::fold_opening;
+
+fn empty_opening() -> CoordOpening {
+    CoordOpening {
+        sub: std::array::from_fn(|_| SubOpening {
+            values: [[0; N]; CHILD_CHAINS],
+            path: [[0; N]; SUB_HEIGHT],
+        }),
+        top: [[0; N]; TOP_HEIGHT],
+    }
+}
+
+/// Generates an aligned group of super-children, retaining an opening only when requested.
+fn super_children(
+    pp: &Pp,
+    master: &MasterSecret,
+    idx: u64,
+    c: usize,
+    first: usize,
+    count: usize,
+    mark: Option<&CoordMark>,
+    open: &mut CoordOpening,
+) -> [Digest; SUPERS] {
+    crate::bounded::super_children(first, count,
+        mark.map(|m| (m.super_child, m.child, m.word)), open, lut,
+        |s, j, a| child_secrets(pp, master, idx, c, s, j, a),
+        |s, j, a, i, start, steps, value| forest_chain(pp, idx, c, s, j, a, i, start, steps, value),
+        |s, j, a, ends| child_leaf(pp, idx, c, s, j, a, ends),
+        |s, j, level, node, left, right| sub_node(pp, idx, c, s, j, level, node, left, right),
+        |s, tops| super_child(pp, idx, c, s, tops))
+}
+
+/// Builds one coordinate at a time and captures the selected chain positions during its walk.
+/// No full forest or chain-start cache is retained by signing.
+pub fn forest_sign(pp: &Pp, master: &MasterSecret, idx: u64, marks: &[CoordMark; COORDS]) -> (ForestKey, ForestOpening) {
+    let mut key = [[[0; N]; 2]; COORDS];
+    let opening = std::array::from_fn(|c| {
+        let mut open = empty_opening();
+        let mark = &marks[c];
+        let mut supers = super_children(pp, master, idx, c, 0, SUPERS, Some(mark), &mut open);
+        key[c] = fold_opening(&mut supers, mark.super_child, &mut open.top,
+            |level, node, left, right| top_node(pp, idx, c, level, node, left, right));
+        open
+    });
+    (key, opening)
 }
 
 /// A forest instance whose children are known: every level, kept for the openings.
@@ -297,6 +335,31 @@ pub fn forest_recover(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn bounded_forest_matches_retained_forest() {
+        let master = [29; MASTER_SECRET_LEN];
+        let idx = (1 << MAX_H) - 1;
+        for hash in HashFn::ALL {
+            let pp = Pp::new(hash, [17; PUBLIC_PARAM_LEN]);
+            let retained = Forest::new(&pp, &master, idx);
+            for offset in [0u8, 71, 255] {
+                let marks = std::array::from_fn(|c| CoordMark {
+                    super_child: (c + usize::from(offset)) % SUPERS,
+                    child: std::array::from_fn(|j| (c + j + usize::from(offset)) % CHILDREN),
+                    word: std::array::from_fn(|j| offset.wrapping_add((2 * c + j) as u8)),
+                });
+                let before = compressions();
+                let expected_opening = retained.open(&pp, idx, &marks);
+                let extra = compressions() - before;
+                assert_eq!(extra, (COORDS * SUBS * (CHILD_CHAINS * CHAIN_TOP - CODEWORD_SUM)) as u64 * hash.call(N));
+                let (key, opening) = forest_sign(&pp, &master, idx, &marks);
+                assert_eq!(key, *retained.key());
+                assert_eq!(opening, expected_opening);
+                assert_eq!(forest_recover(&pp, idx, &marks, &opening), key);
+            }
+        }
+    }
 
     /// The table is the rule of `LeanForest/Scheme.lean::codewordCodes`: its first entries as base-5
     /// numbers, its composition by digit pattern, and the 42 codewords listed twice.

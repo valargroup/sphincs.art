@@ -160,9 +160,8 @@ class Costs:
                           + self.super_hash + (TOP_PATH - 1) * self.node)
         if fts is None:
             self.fts_sign, self.fts_verify, self.fts_nodes = self.forest_sign, COORDS * self.per_coord, COORDS * 2
-            # opening the forest walks again the chains of the 16 WOTS keys it opens from their secrets, up to below
-            # the tops (as the Rust signer does)
-            self.fts_open = COORDS * SUBS * (CHAINS * STEPS - DIGIT_SUM) * self.step
+            # The signer captures opened values during the endpoint walk; no prefix is hashed twice.
+            self.fts_open = 0
         else:
             k, a = fts
             self.fts_sign = k * (2**a // 2 * self.derive + 2**a * self.step + (2**a - 2) * self.node)

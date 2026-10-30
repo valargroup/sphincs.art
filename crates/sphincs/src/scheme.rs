@@ -16,6 +16,7 @@
 //! carries the layer and the tree, and the leaf or the node index inside the tree.
 
 use crate::*;
+pub use crate::bounded::TreeCache;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct PublicKey {
@@ -49,32 +50,43 @@ pub struct Signature {
 }
 
 impl Signature {
+    /// Exact wire length, without allocating an encoding buffer.
+    pub fn encoded_len(&self) -> usize {
+        RANDOMIZER_LEN + FOREST_SIZE + self.layers.iter().map(|layer| LAYER_SIZE + layer.path.len() * N).sum::<usize>()
+    }
+
     pub fn to_bytes(&self) -> Vec<u8> {
-        let mut out = Vec::new();
-        out.extend_from_slice(&self.randomizer);
+        let mut out = Vec::with_capacity(self.encoded_len());
+        self.write_to(&mut out).expect("writing to a vector cannot fail");
+        out
+    }
+
+    /// Writes the existing wire format to caller-owned storage without a second signature buffer.
+    pub fn write_to(&self, mut out: impl std::io::Write) -> std::io::Result<()> {
+        out.write_all(&self.randomizer)?;
         for coord in &self.forest {
             for sub in &coord.sub {
                 for value in &sub.values {
-                    out.extend_from_slice(value);
+                    out.write_all(value)?;
                 }
                 for node in &sub.path {
-                    out.extend_from_slice(node);
+                    out.write_all(node)?;
                 }
             }
             for node in &coord.top {
-                out.extend_from_slice(node);
+                out.write_all(node)?;
             }
         }
         for layer in &self.layers {
-            out.extend_from_slice(&layer.counter.to_le_bytes());
+            out.write_all(&layer.counter.to_le_bytes())?;
             for value in &layer.wots {
-                out.extend_from_slice(value);
+                out.write_all(value)?;
             }
             for node in &layer.path {
-                out.extend_from_slice(node);
+                out.write_all(node)?;
             }
         }
-        out
+        Ok(())
     }
 
     pub fn from_bytes(cfg: &Config, bytes: &[u8]) -> Option<Self> {
@@ -167,14 +179,13 @@ pub fn xmss_node(pp: &Pp, layer: usize, tree: u32, level: usize, j: u64, left: &
 /// A tree of one layer: its kept subtree's levels and the surrogates above it.
 #[derive(Clone, Debug)]
 pub struct XmssTree {
+    layer: usize,
+    tree: u32,
     height: usize,
-    /// Height of the kept subtree; `b = height` keeps the whole tree.
     b: usize,
-    /// The first leaf of the kept subtree.
     start: u64,
-    /// The kept subtree, level 0 being its `2^b` leaves.
+    cached_from: usize,
     levels: Vec<Vec<Digest>>,
-    /// The siblings of the path at levels `b..height`, surrogates (no secret below them).
     surrogates: Vec<Digest>,
     root: Digest,
 }
@@ -185,25 +196,22 @@ impl XmssTree {
         pp: &Pp, layer: usize, tree: u32, height: usize, b: usize, start: u64, leaves: Vec<Digest>,
         surrogates: Vec<Digest>,
     ) -> Self {
-        assert!(b <= height && start.is_multiple_of(1 << b));
-        assert_eq!(leaves.len(), 1 << b);
+        Self::from_leaves_cached(pp, layer, tree, height, b, start, 0, leaves, surrogates)
+    }
+
+    fn from_leaves_cached(pp: &Pp, layer: usize, tree: u32, height: usize, b: usize,
+        start: u64, cached_from: usize, leaves: impl IntoIterator<Item = Digest>, surrogates: Vec<Digest>) -> Self {
+        assert!(b <= height && height <= MAX_H);
         assert_eq!(surrogates.len(), height - b);
-        let mut levels = vec![leaves];
-        for level in 1..=b {
-            let below = &levels[level - 1];
-            let first = start >> level;
-            let up = (0..below.len() / 2)
-                .map(|j| xmss_node(pp, layer, tree, level, first + j as u64, &below[2 * j], &below[2 * j + 1]))
-                .collect();
-            levels.push(up);
-        }
-        let root = surrogates.iter().enumerate().fold(levels[b][0], |node, (t, sibling)| {
+        let levels = crate::bounded::cached_levels(b, start, cached_from, leaves,
+            |level, index, left, right| xmss_node(pp, layer, tree, level, index, left, right));
+        let root = surrogates.iter().enumerate().fold(levels[b - cached_from][0], |node, (t, sibling)| {
             let level = b + t;
             let j = start >> level;
             let (left, right) = if j & 1 == 0 { (node, *sibling) } else { (*sibling, node) };
             xmss_node(pp, layer, tree, level + 1, j >> 1, &left, &right)
         });
-        Self { height, b, start, levels, surrogates, root }
+        Self { layer, tree, height, b, start, cached_from, levels, surrogates, root }
     }
 
     pub fn root(&self) -> Digest {
@@ -216,14 +224,31 @@ impl XmssTree {
 
     /// The authentication path of a leaf, which must be kept.
     pub fn path(&self, leaf: u64) -> Vec<Digest> {
+        assert_eq!(self.cached_from, 0, "use the signing key to regenerate omitted nodes");
+        self.append_cached_path(leaf, Vec::with_capacity(self.height))
+    }
+
+    fn path_cached(&self, pp: &Pp, master: &MasterSecret, leaf: u64) -> Vec<Digest> {
+        assert!(self.contains(leaf));
+        let lower = if self.cached_from == 0 { Vec::with_capacity(self.height) } else {
+            crate::bounded::subtree_path(leaf as u32, self.cached_from,
+                |leaf| wots_leaf(pp, master, &OtsKey { layer: self.layer, tree: self.tree, leaf }),
+                |level, index, left, right| xmss_node(pp, self.layer, self.tree, level, index, left, right)).1
+        };
+        self.append_cached_path(leaf, lower)
+    }
+
+    fn append_cached_path(&self, leaf: u64, mut path: Vec<Digest>) -> Vec<Digest> {
         assert!(self.contains(leaf));
         let local = (leaf - self.start) as usize;
-        (0..self.height)
-            .map(|level| {
-                if level < self.b { self.levels[level][(local >> level) ^ 1] } else { self.surrogates[level - self.b] }
-            })
-            .collect()
+        path.reserve(self.height - path.len());
+        path.extend((self.cached_from..self.height).map(|level| {
+            if level < self.b { self.levels[level - self.cached_from][(local >> level) ^ 1] }
+            else { self.surrogates[level - self.b] }
+        }));
+        path
     }
+
 }
 
 /// `Tree.fold`: the node the leaf of a one-time key and its path reach.
@@ -241,6 +266,14 @@ pub fn layer_tree(pp: &Pp, master: &MasterSecret, key: &OtsKey, height: usize) -
         .map(|leaf| wots_leaf(pp, master, &OtsKey { leaf, ..*key }))
         .collect();
     XmssTree::from_leaves(pp, key.layer, key.tree, height, height, 0, leaves, Vec::new())
+}
+
+/// Builds one lower-layer authentication path without retaining the whole tree.
+pub fn layer_path(pp: &Pp, master: &MasterSecret, key: &OtsKey, height: usize) -> (Digest, Vec<Digest>) {
+    assert!(height <= MAX_H && u64::from(key.leaf) < 1u64 << height);
+    crate::bounded::subtree_path(key.leaf, height,
+        |leaf| wots_leaf(pp, master, &OtsKey { leaf, ..*key }),
+        |level, index, left, right| xmss_node(pp, key.layer, key.tree, level, index, left, right))
 }
 
 /// A secret key, made by [`key_gen`] only.
@@ -286,6 +319,14 @@ pub fn configured_seed(cfg: &Config, seed: &MasterSecret) -> MasterSecret {
 /// pruned key its low bits place the kept subtree, and the surrogates are derived from it. A layered
 /// key builds its top layer.
 pub fn key_gen(cfg: &Config, seed: &MasterSecret) -> (SecretKey, PublicKey) {
+    key_gen_with_cache(cfg, seed, TreeCache::Full)
+}
+
+/// Generates identical key bytes with fewer retained nodes. Each signature regenerates
+/// `2^levels` leaves with `TreeCache::Recompute`; the cache choice does not change seed derivation.
+pub fn key_gen_with_cache(cfg: &Config, seed: &MasterSecret, cache: TreeCache) -> (SecretKey, PublicKey) {
+    let cached_from = match cache { TreeCache::Full => 0, TreeCache::Recompute { levels } => levels };
+    assert!(cached_from <= cfg.kept(), "cache exceeds kept height");
     let seed = &configured_seed(cfg, seed);
     let public_param = th(&Pp::new(cfg.hash(), [0; PUBLIC_PARAM_LEN]), &tweak(TWEAK_PARAMETER, 0, 0), seed);
     let pp = Pp::new(cfg.hash, public_param);
@@ -294,10 +335,9 @@ pub fn key_gen(cfg: &Config, seed: &MasterSecret) -> (SecretKey, PublicKey) {
     let s = u64::from_le_bytes(public_param[..8].try_into().unwrap()) & ((1 << (height - b)) - 1);
     let start = s << b;
     let leaves = (0..1u64 << b)
-        .map(|j| wots_leaf(&pp, seed, &OtsKey { layer, tree: 0, leaf: (start + j) as u32 }))
-        .collect();
+        .map(|j| wots_leaf(&pp, seed, &OtsKey { layer, tree: 0, leaf: (start + j) as u32 }));
     let surrogates = (b..height).map(|level| th(&pp, &tweak(TWEAK_SURROGATE, level as u32, 0), seed)).collect();
-    let top = XmssTree::from_leaves(&pp, layer, 0, height, b, start, leaves, surrogates);
+    let top = XmssTree::from_leaves_cached(&pp, layer, 0, height, b, start, cached_from, leaves, surrogates);
     let sk = SecretKey { cfg: *cfg, pp, master: *seed, top };
     let pk = sk.public_key();
     (sk, pk)
@@ -341,7 +381,7 @@ pub fn sign(sk: &SecretKey, m: &Message) -> Signature {
     let (cfg, pp) = (&sk.cfg, &sk.pp);
     let layers = cfg.layers();
     let top = layers.len() - 1;
-    let below_top = cfg.below(top);
+    let below_top: usize = layers[..top].iter().sum();
     // The digest's fixed part is absorbed once, and the randomizers are `R_0 + i * delta`: an
     // attempt costs one compression.
     let (walk, digests) = (randomizer_walk(pp, &sk.master, m), digest_midstate(pp, m));
@@ -350,19 +390,21 @@ pub fn sign(sk: &SecretKey, m: &Message) -> Signature {
         .find(|rho| sk.top.contains(index_of_block(&digests.finish(rho), cfg.h) >> below_top))
         .unwrap();
     let (idx, marks) = message_digest(pp, cfg.h, &rho, m);
-    let forest = Forest::new(pp, &sk.master, idx);
-    let opening = forest.open(pp, idx, &marks);
-    let mut message = forest_key_bytes(forest.key());
+    let (forest_key, opening) = forest_sign(pp, &sk.master, idx, &marks);
+    let mut message = forest_key_bytes(&forest_key);
+    let mut layer_index = idx;
     let mut signed = Vec::with_capacity(layers.len());
     for (layer, &height) in layers.iter().enumerate() {
-        let key = OtsKey::at(layer, height, idx >> cfg.below(layer));
+        let key = OtsKey::at(layer, height, layer_index);
+        layer_index >>= height;
         let (counter, wots) = wots_sign(pp, &sk.master, &key, &message).expect("no admissible WOTS+C encoding");
         let path = if layer == top {
-            sk.top.path(u64::from(key.leaf))
+            sk.top.path_cached(pp, &sk.master, u64::from(key.leaf))
         } else {
-            let tree = layer_tree(pp, &sk.master, &key, height);
-            message = tree.root.to_vec();
-            tree.path(u64::from(key.leaf))
+            let (root, path) = layer_path(pp, &sk.master, &key, height);
+            message.clear();
+            message.extend_from_slice(&root);
+            path
         };
         signed.push(LayerSignature { counter, wots, path });
     }
@@ -461,6 +503,53 @@ mod tests {
                 }
             }
         }
+    }
+
+    #[test]
+    fn cache_policies_and_streamed_paths_preserve_signatures() {
+        for hash in HashFn::ALL {
+            for shape in [Shape::Pruned { b: 8 }, Shape::Layered] {
+                let cfg = Config::new(hash, 20, shape);
+                let (full, pk) = key_gen(&cfg, &seed(13));
+                let m = [31; MESSAGE_LEN];
+                let expected = sign(&full, &m);
+                for levels in [0, 2, 4, cfg.kept()] {
+                    let (small, same_pk) = key_gen_with_cache(&cfg, &seed(13), TreeCache::Recompute { levels });
+                    assert_eq!(pk, same_pk);
+                    let actual = sign(&small, &m);
+                    assert_eq!(actual, expected);
+                    verify(&cfg, &same_pk, &m, &actual).unwrap();
+                }
+                let bytes = expected.to_bytes();
+                assert_eq!(expected.encoded_len(), cfg.sig_size());
+                let mut storage = vec![0; bytes.len()];
+                let mut writer = &mut storage[..];
+                expected.write_to(&mut writer).unwrap();
+                assert!(writer.is_empty());
+                assert_eq!(storage, bytes);
+                let mut short = &mut storage[..bytes.len() - 1];
+                assert_eq!(expected.write_to(&mut short).unwrap_err().kind(), std::io::ErrorKind::WriteZero);
+                assert!(Signature::from_bytes(&cfg, &bytes[..bytes.len() - 1]).is_none());
+                let mut oversized = bytes.clone(); oversized.push(0);
+                assert!(Signature::from_bytes(&cfg, &oversized).is_none());
+            }
+            for height in [0, 1, 3, 6] {
+                let pp = Pp::new(hash, [7; PUBLIC_PARAM_LEN]);
+                for leaf in [0, (1 << height) - 1] {
+                    let key = OtsKey { layer: 1, tree: 17, leaf };
+                    let tree = layer_tree(&pp, &seed(8), &key, height);
+                    let (root, path) = layer_path(&pp, &seed(8), &key, height);
+                    assert_eq!(root, tree.root());
+                    assert_eq!(path, tree.path(u64::from(leaf)));
+                }
+            }
+        }
+    }
+
+    #[test]
+    #[should_panic(expected = "cache exceeds kept height")]
+    fn cache_cannot_omit_more_than_kept_height() {
+        key_gen_with_cache(&keccak(20, 8), &seed(1), TreeCache::Recompute { levels: 9 });
     }
 
     /// The baseline (Keccak-256, one tree of height 24): 4,244 bytes and 260 permutations, and a

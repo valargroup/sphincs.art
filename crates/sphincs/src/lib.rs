@@ -9,8 +9,9 @@
 //!
 //! `Th(P, tw, M)` is the hash of `P | tw | M` truncated to `n = 16` bytes, with a 16-byte address
 //! `tw`; each hash has its own layout ([`hash`]). Every hash call goes through [`hash`], which also
-//! counts compressions (thread-local) so tests can check the note's costs.
+//! counts compressions in tests or with the `hash-counts` feature so the note's costs can be checked.
 
+mod bounded;
 mod hash;
 pub use hash::*;
 mod wots;

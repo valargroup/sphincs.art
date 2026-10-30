@@ -174,16 +174,7 @@ pub fn configured_seed(cfg: &Config, seed: &MasterSecret) -> MasterSecret {
         ],
     )
 }
-/// Controls retained tree memory without changing keys, signatures, or signing-use limits.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
-pub enum TreeCache {
-    /// Retain every node of the kept subtree for signing without leaf recomputation.
-    #[default]
-    Full,
-    /// Omit the bottom `levels` of nodes and regenerate their authentication paths when signing.
-    /// Each signature regenerates `2^levels` leaves; `levels` must not exceed the kept height.
-    Recompute { levels: usize },
-}
+pub use crate::bounded::TreeCache;
 
 pub fn key_gen(cfg: &Config, seed: &MasterSecret) -> (SecretKey, PublicKey) {
     key_gen_with_cache(cfg, seed, TreeCache::Full)

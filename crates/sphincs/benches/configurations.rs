@@ -40,10 +40,6 @@ fn main() {
     let cache_levels: usize = option(&args, "--cache-levels", "0")
         .parse()
         .expect("integer cache level");
-    assert!(
-        cache_levels == 0 || families == "192",
-        "partial cache requires family 192"
-    );
     let runs: usize = option(&args, "--runs", "3").parse().expect("integer runs");
     let messages: usize = option(&args, "--messages", "3")
         .parse()
@@ -161,7 +157,13 @@ fn main() {
                         let seed = std::array::from_fn(|i| (i + run * 37 + h) as u8);
                         let before = legacy::compressions();
                         let start = Instant::now();
-                        let (sk, pk) = legacy::key_gen(&cfg, black_box(&seed));
+                        let (sk, pk) = legacy::key_gen_with_cache(
+                            &cfg,
+                            black_box(&seed),
+                            legacy::TreeCache::Recompute {
+                                levels: cache_levels,
+                            },
+                        );
                         let keygen = start.elapsed().as_nanos();
                         let key_counts = legacy::compressions() - before;
                         let mut signing = Vec::new();
@@ -193,7 +195,7 @@ fn main() {
                             continue;
                         }
                         println!(
-                            "{{\"family\":128,\"hash\":\"{}\",\"variant\":\"forest\",\"h\":{},\"shape\":\"{}\",\"b\":{},\"run\":{},\"message_bytes\":32,\"signature_bytes\":{},\"keygen_ns\":{},\"sign_ns\":{:?},\"verify_ns\":{},\"verify_iterations\":{},\"keygen_compressions\":{},\"sign_compressions\":{:?},\"verify_compressions\":{}}}",
+                            "{{\"family\":128,\"hash\":\"{}\",\"variant\":\"forest\",\"h\":{},\"shape\":\"{}\",\"b\":{},\"run\":{},\"message_bytes\":32,\"signature_bytes\":{},\"keygen_ns\":{},\"sign_ns\":{:?},\"verify_ns\":{},\"verify_iterations\":{},\"keygen_compressions\":{},\"sign_compressions\":{:?},\"verify_compressions\":{},\"cache_levels\":{}}}",
                             hash.name(),
                             h,
                             shape_name,
@@ -206,7 +208,8 @@ fn main() {
                             verify_iters,
                             key_counts,
                             signing_counts,
-                            cfg.verify_compressions()
+                            cfg.verify_compressions(),
+                            cache_levels
                         );
                     }
                 }

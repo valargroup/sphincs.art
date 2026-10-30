@@ -52,39 +52,13 @@ impl XmssTree {
     ) -> Self {
         assert!(cached_from <= b && b <= height && start.is_multiple_of(1 << b));
         assert_eq!(surrogates.len(), height - b);
-        let mut levels: Vec<_> = (cached_from..=b)
-            .map(|level| vec![[0; N]; 1 << (b - level)])
-            .collect();
-        let mut pending = [[0; N]; crate::MAX_H];
-        let mut count = 0;
-        for (position, mut node) in leaves.into_iter().enumerate() {
-            assert!(position < 1 << b, "too many tree leaves");
-            count += 1;
-            let mut index = start + position as u64;
-            for level in 0..=b {
-                if level >= cached_from {
-                    levels[level - cached_from][position >> level] = node;
-                }
-                if level == b {
-                    break;
-                }
-                if index & 1 == 0 {
-                    pending[level] = node;
-                    break;
-                }
-                node = xmss_node(
-                    pp,
-                    layer,
-                    tree,
-                    level + 1,
-                    index >> 1,
-                    &pending[level],
-                    &node,
-                );
-                index >>= 1;
-            }
-        }
-        assert_eq!(count, 1 << b, "not enough tree leaves");
+        let levels = crate::bounded::cached_levels(
+            b,
+            start,
+            cached_from,
+            leaves,
+            |level, index, left, right| xmss_node(pp, layer, tree, level, index, left, right),
+        );
         let root =
             surrogates
                 .iter()
@@ -192,35 +166,10 @@ fn subtree_path(
     key: &OtsKey,
     height: usize,
 ) -> (Digest, Vec<Digest>) {
-    assert!(height <= crate::MAX_H);
-    let mut left_nodes = [[0; N]; crate::MAX_H];
-    let mut path = vec![[0; N]; height];
-    let first = key.leaf & !((1 << height) - 1);
-    for leaf in first..first + (1u32 << height) {
-        let mut node = wots_leaf(pp, master, &OtsKey { leaf, ..*key });
-        let mut index = leaf;
-        for level in 0..=height {
-            if level == height {
-                return (node, path);
-            }
-            if index == (key.leaf >> level) ^ 1 {
-                path[level] = node;
-            }
-            if index & 1 == 0 {
-                left_nodes[level] = node;
-                break;
-            }
-            node = xmss_node(
-                pp,
-                key.layer,
-                key.tree,
-                level + 1,
-                u64::from(index >> 1),
-                &left_nodes[level],
-                &node,
-            );
-            index >>= 1;
-        }
-    }
-    unreachable!("the final leaf completes the root")
+    crate::bounded::subtree_path(
+        key.leaf,
+        height,
+        |leaf| wots_leaf(pp, master, &OtsKey { leaf, ..*key }),
+        |level, index, left, right| xmss_node(pp, key.layer, key.tree, level, index, left, right),
+    )
 }

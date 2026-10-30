@@ -24,19 +24,10 @@ pub(super) struct CoordMark {
     pub word: [u8; SUBS],
 }
 
-/// The opening of one sub-tree: the 6 revealed chain values and the 3 authentication nodes.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub(super) struct SubOpening {
-    pub values: [Digest; CHILD_CHAINS],
-    pub path: [Digest; SUB_HEIGHT],
-}
-
-/// The opening of one coordinate: both sub-trees, then the 4 authentication nodes of the top tree.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub(super) struct CoordOpening {
-    pub sub: [SubOpening; SUBS],
-    pub top: [Digest; TOP_HEIGHT],
-}
+/// Six revealed chain values and the three authentication nodes of one small tree.
+pub type SubOpening = crate::bounded::SubOpening<N>;
+/// Both small-tree openings and the four authentication nodes of one coordinate.
+pub type CoordOpening = crate::bounded::CoordOpening<N>;
 
 /// What a signature carries for the forest: `COORDS * 22` values.
 pub(super) type ForestOpening = [CoordOpening; COORDS];
@@ -215,56 +206,18 @@ fn super_children(
     mark: Option<&CoordMark>,
     open: &mut CoordOpening,
 ) -> [Digest; SUPERS] {
-    assert!(first + count <= SUPERS);
-    let mut supers = [[0; N]; SUPERS];
-    for (local, super_leaf) in supers[..count].iter_mut().enumerate() {
-        let s = first + local;
-        let mut tops = [[[0; N]; 2]; SUBS];
-        for (j, sub_top) in tops.iter_mut().enumerate() {
-            let mut leaves = [[0; N]; CHILDREN];
-            for (a, leaf) in leaves.iter_mut().enumerate() {
-                let mut ends = child_secrets(pp, master, idx, c, s, j, a);
-                if let Some(mark) = mark.filter(|mark| s == mark.super_child && a == mark.child[j])
-                {
-                    let word = lut(mark.word[j]);
-                    for (i, end) in ends.iter_mut().enumerate() {
-                        let position = CHAIN_TOP - word[i] as usize;
-                        *end = forest_chain(pp, idx, c, s, j, a, i, 0, position, *end);
-                        open.sub[j].values[i] = *end;
-                        *end = forest_chain(
-                            pp,
-                            idx,
-                            c,
-                            s,
-                            j,
-                            a,
-                            i,
-                            position,
-                            CHAIN_TOP - position,
-                            *end,
-                        );
-                    }
-                } else {
-                    for (i, end) in ends.iter_mut().enumerate() {
-                        *end = forest_chain(pp, idx, c, s, j, a, i, 0, CHAIN_TOP, *end);
-                    }
-                }
-                *leaf = child_leaf(pp, idx, c, s, j, a, &ends);
-            }
-            let mut path = [[0; N]; SUB_HEIGHT];
-            *sub_top = fold_opening(
-                &mut leaves,
-                mark.map_or(0, |mark| mark.child[j]),
-                &mut path,
-                |level, node, left, right| sub_node(pp, idx, c, s, j, level, node, left, right),
-            );
-            if mark.is_some_and(|mark| s == mark.super_child) {
-                open.sub[j].path = path;
-            }
-        }
-        *super_leaf = super_child(pp, idx, c, s, &tops);
-    }
-    supers
+    crate::bounded::super_children(
+        first,
+        count,
+        mark.map(|m| (m.super_child, m.child, m.word)),
+        open,
+        lut,
+        |s, j, a| child_secrets(pp, master, idx, c, s, j, a),
+        |s, j, a, i, start, steps, value| forest_chain(pp, idx, c, s, j, a, i, start, steps, value),
+        |s, j, a, ends| child_leaf(pp, idx, c, s, j, a, ends),
+        |s, j, level, node, left, right| sub_node(pp, idx, c, s, j, level, node, left, right),
+        |s, tops| super_child(pp, idx, c, s, tops),
+    )
 }
 
 /// Appends one level of public coordinate-tree nodes for one instance. No chain secrets are kept.
@@ -388,29 +341,7 @@ pub(super) fn forest_sign_precomputed(
     )
 }
 
-/// Reduces the leaves in place to two top nodes, saving siblings before overwriting each level.
-/// The last path entry is the other top node: this construction never hashes the two tops together.
-fn fold_opening(
-    leaves: &mut [Digest],
-    selected: usize,
-    path: &mut [Digest],
-    node: impl Fn(usize, usize, &Digest, &Digest) -> Digest,
-) -> [Digest; 2] {
-    debug_assert_eq!(leaves.len(), 1 << path.len());
-    debug_assert!(selected < leaves.len());
-    let mut width = leaves.len();
-    let height = path.len();
-    for (level, sibling) in path.iter_mut().enumerate() {
-        *sibling = leaves[(selected >> level) ^ 1];
-        if level + 1 < height {
-            for j in 0..width / 2 {
-                leaves[j] = node(level, j, &leaves[2 * j], &leaves[2 * j + 1]);
-            }
-            width /= 2;
-        }
-    }
-    [leaves[0], leaves[1]]
-}
+use crate::bounded::fold_opening;
 
 /// `Fts.recover`: the forest key an opening reaches.
 pub(super) fn forest_recover(

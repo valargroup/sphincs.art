@@ -142,7 +142,7 @@ data includes all 156 combinations of hash, variant, height and shape/pruning;
 operation counts distinguish SHA-256, SHA-512 and Keccak-f.
 
 Normal builds omit diagnostic hash-operation accounting. Enable the `hash-counts`
-Cargo feature to expose `level192::hash_counts`; unit tests enable accounting
+Cargo feature to expose `compressions` and `level192::hash_counts`; unit tests enable accounting
 automatically. The CPU runner enables the feature explicitly so its operation
 counts remain available. Timings from that runner include the accounting work.
 
@@ -162,6 +162,17 @@ measurements belong in the PR discussion, separate from the calculator's counts.
 
 ### Memory use
 
+For the 128-bit family, `Signature::encoded_len` and `Signature::write_to` allow
+serialization directly into caller-owned storage. `to_bytes` allocates its exact
+wire length once. These APIs do not change the signature encoding or stream the
+generation of the signature itself. To measure requested heap, including the
+retained key and signature but excluding stack/static/allocator overhead, run:
+
+```sh
+cargo run --locked --release -p sphincs --features hash-counts --example memory128 -- --check
+cargo run --locked --release -p sphincs --features hash-counts --example memory128 -- --check --cache-levels 2
+```
+
 Signing checks the packed WOTS+C digit sum before expanding a candidate's 96
 positions. Failed candidates require no expanded array, and fixed layer offsets
 are calculated outside the randomizer search. Forest signing captures selected
@@ -170,14 +181,22 @@ This removes 912 SHA-256 compressions per SHA2 forest signature (456 Keccak-f
 permutations for SHAKE) without adding a buffer or enabling public precomputation.
 Parameters, search order, signature bytes and verification work remain unchanged.
 
-The 192-bit forest signer builds one coordinate at a time and keeps only the
+Both parameter families share a packed two-bit WOTS+C decoder, the small forest
+traversal, streamed Merkle level construction and authentication-path reduction.
+The 128-bit path retains its original hashes, addresses, parameters and wire
+format. Its selected forest values are now captured during endpoint generation,
+saving 304 hash operations per signature for each of its three hashes. Temporary
+hash-input vectors and duplicate WOTS chain buffers are also removed.
+
+Each forest signer builds one coordinate at a time and keeps only the
 selected opening. Lower hypertree layers retain one pending Merkle node per
 height and the selected authentication path, rather than an entire temporary
 tree. These changes preserve signature bytes, addresses and hash-operation
 counts. The top tree remains cached in the secret key; its memory still grows
 with the kept height.
 
-`key_gen_with_cache` accepts `TreeCache::Recompute { levels }` to omit the bottom
+Both `sphincs::key_gen_with_cache` and `sphincs::level192::key_gen_with_cache`
+accept the same `TreeCache::Recompute { levels }` to omit the bottom
 tree levels from the cache. Each signature regenerates the aligned subtree of
 `2^levels` leaves containing its signing location. Key generation streams leaves
 through pending nodes, so the omitted levels are never allocated. The default
