@@ -160,9 +160,8 @@ class Costs:
                           + self.super_hash + (TOP_PATH - 1) * self.node)
         if fts is None:
             self.fts_sign, self.fts_verify, self.fts_nodes = self.forest_sign, COORDS * self.per_coord, COORDS * 2
-            # opening the forest walks again the chains of the 16 WOTS keys it opens from their secrets, up to below
-            # the tops (as the Rust signer does)
-            self.fts_open = COORDS * SUBS * (CHAINS * STEPS - DIGIT_SUM) * self.step
+            # The signer captures opened values during the endpoint walk; no prefix is hashed twice.
+            self.fts_open = 0
         else:
             k, a = fts
             self.fts_sign = k * (2**a // 2 * self.derive + 2**a * self.step + (2**a - 2) * self.node)
@@ -279,9 +278,14 @@ def main():
     ap.add_argument("--cache-kib", type=float, nargs="+", default=[16, 1024], help="signer cache sizes (KiB)")
     ap.add_argument("--table", action="store_true", help="one line per configuration: size, verification, lifetime")
     ap.add_argument("--json", action="store_true", help="every figure of the site, as JSON (site/data.json)")
+    ap.add_argument("--security", choices=("128", "192"), default="128", help="experimental 192-bit family or the original family")
     x = ap.parse_args()
     hashes = [H for H in HASHES if H.name in x.hash]
 
+    if x.security == "192":
+        import level192
+        level192.main(["--json"] if x.json else [])
+        return
     if x.json:
         import json
         print(json.dumps(site_data(), indent=1))
@@ -390,6 +394,8 @@ def site_data():
     out["rates"] = DEVICES
     out["wallet"] = dict(prepared=THRESHOLD_PREPARED, stark_verify=STARK_VERIFY, stark_verify_s=STARK_VERIFY_SECONDS, host_rate=HOST_RATE, device_rate=DEVICE_RATE,
                          opened_avg=COORDS * SUBS * sum(nonzero) / len(nonzero), opened_max=COORDS * SUBS * max(nonzero))
+    import level192
+    out["level192"] = level192.site_data()
     return out
 
 

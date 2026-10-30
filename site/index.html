@@ -326,6 +326,9 @@ footer a + a { margin-left: 1.25rem; }
   h1, .sphinx-line { grid-column: 1 / -1; }
   .sphinx-line.inflow { order: 4; margin-top: 1rem; }
 }
+.seg button[hidden], #experimental192[hidden], section.modes[hidden], figure[hidden] { display: none !important; }
+#experimental192 { grid-column: 1 / -1; max-width: 70rem; }
+#experimental192 p { margin: 1rem 0; }
 </style>
 </head>
 <body data-v="fors">
@@ -338,12 +341,14 @@ footer a + a { margin-left: 1.25rem; }
     </header>
     <div class="params">
       <div class="toggles" id="toggles">
+        <span class="sl" id="tl-security">Family</span>
+        <div class="seg" role="radiogroup" aria-labelledby="tl-security" data-key="security"><button type="button" role="radio" data-val="128">128</button><button type="button" role="radio" data-val="192">192 experimental</button></div>
         <span class="sl"><span id="tl-h">Lifetime</span><span class="info w dn" tabindex="0" role="button" aria-label="More information" data-tip="How many signatures can be made, at ≥ 127 bits of security in the ROM, [proven in Lean 4](https://github.com/TomWambsgans/sphincs.art/tree/main/formal/sphincs). Security degrades gracefully beyond that.">i</span></span>
         <div class="seg" role="radiogroup" aria-labelledby="tl-h" data-key="h"><button type="button" role="radio" data-val="20" aria-label="2 to the 24">2<sup>24</sup></button><button type="button" role="radio" data-val="22" aria-label="2 to the 26">2<sup>26</sup></button><button type="button" role="radio" data-val="24" aria-label="2 to the 28">2<sup>28</sup></button><button type="button" role="radio" data-val="26" aria-label="2 to the 30">2<sup>30</sup></button><button type="button" role="radio" data-val="28" aria-label="2 to the 32">2<sup>32</sup></button></div>
         <span class="sl"><span id="tl-shape">Mode</span><span class="info w dn" tabindex="0" role="button" aria-label="More information" data-tip="# Uniform&#10;Standard signing (the randomizer selects a random FTS among the 2ʰ possible ones).&#10;&#10;# Pruning&#10;Use a single, large, XMSS layer. Weak devices only construct a subtree of 2ᵇ leaves, and use pseudorandom nodes for the rest, and signing grinds until its index lands in it (An idea from [conduition](https://conduition.io/cryptography/hypertree-pruning/)). Verifier algo is unaffected.&#10;&#10;The risk of reusing a seed under different pruning parameters is fixed by deriving a second seed as H(seed ‖ parameters).&#10;&#10;Privacy: one can select the leaf indexes of the non-pruned FTS at (pseudo)random, but signing a lot will always eventually leak the pruning size. Partial remediation: keep a semi-trusted state S of the previously signed FTS, and when grinding lands on a FTS of S, accept it only with probability (2ᵇ − |S|) / (2ʰ − |S|), so that FTS repeat exactly as often as with a full tree. This essentially gives 2ᵇ⁻¹ signatures with no privacy leak. The state is semi-trusted, because an adversary controlling it can: leak the pruning size, and reduce the lifetime by a factor of 2, but nothing worse.">i</span></span>
         <div class="seg" role="radiogroup" aria-labelledby="tl-shape" data-key="shape"><button type="button" role="radio" data-val="layered">Uniform</button><button type="button" role="radio" data-val="pruned">Pruning</button></div>
         <span class="sl" id="tl-hash">Hash</span>
-        <div class="seg" role="radiogroup" aria-labelledby="tl-hash" data-key="hash"><button type="button" role="radio" data-val="Keccak-256">Keccak-256</button><button type="button" role="radio" data-val="SHA-256">SHA-256</button><button type="button" role="radio" data-val="BLAKE2s">BLAKE2s</button></div>
+        <div class="seg" role="radiogroup" aria-labelledby="tl-hash" data-key="hash"><button type="button" role="radio" data-family="128" data-val="Keccak-256">Keccak-256</button><button type="button" role="radio" data-family="128" data-val="SHA-256">SHA-256</button><button type="button" role="radio" data-family="128" data-val="BLAKE2s">BLAKE2s</button><button type="button" role="radio" data-family="192" data-val="SHAKE256" hidden>SHAKE256</button><button type="button" role="radio" data-family="192" data-val="SHA2" hidden>SHA2</button></div>
         <span class="sl two"><span id="tl-v">FTS variant</span><span class="info w dn" id="v-tip" tabindex="0" role="button" aria-label="More information" data-tip="">i</span></span>
         <div class="seg" role="radiogroup" aria-labelledby="tl-v" data-key="v"><button type="button" role="radio" data-val="fors">FORS</button><button type="button" role="radio" data-val="forest">WOTS forest</button></div>
       </div>
@@ -353,7 +358,7 @@ footer a + a { margin-left: 1.25rem; }
           <tr><th><i>h</i></th><td data-f="h">&hellip;</td></tr>
           <tr><th><i>k</i></th><td data-f="k">&hellip;</td></tr>
           <tr><th><i>a</i></th><td data-f="a">&hellip;</td></tr>
-          <tr><th>OTS</th><td>WOTS+C<span class="info" tabindex="0" role="button" aria-label="More information" data-tip="v&#160;=&#160;64 chains of length w&#160;=&#160;4, target sum T&#160;=&#160;128">i</span></td></tr>
+          <tr><th>OTS</th><td>WOTS+C<span id="ots-tip" class="info" tabindex="0" role="button" aria-label="More information" data-tip="v&#160;=&#160;64 chains of length w&#160;=&#160;4, target sum T&#160;=&#160;128">i</span></td></tr>
         </tbody>
         <tbody class="out">
           <tr><th>Size</th><td data-f="size">&hellip;</td></tr>
@@ -903,6 +908,22 @@ footer a + a { margin-left: 1.25rem; }
   <div class="sphinx-line"><div class="sphinx" aria-hidden="true"><div class="stone"></div><svg viewBox="0 0 1783 680"></svg></div></div>
   <hr class="sep">
 
+  <section id="experimental192" hidden aria-live="polite">
+    <h2>Experimental Category 3 target</h2>
+    <p>24-byte nodes and a 48-byte public key. These custom configurations are not standardized SLH-DSA.
+      Their full-scheme security and quantum security have not been proved.</p>
+    <p>The signature budgets below bound only the modeled cover attack at 2<sup>−192</sup> per digest query,
+      using exact binomial occupancy with numerical enclosures. They are <strong>not proved safe signing limits</strong>.
+      Combining that model with a hypothetical 192-bit hash-search term gives the repository’s 191-bit
+      classical screening convention; it does not establish Category 3 security.</p>
+    <div class="scroll"><table class="plain"><thead><tr><th>Kept height</th><th>Cover-model signatures</th><th>Key generation (modeled)</th></tr></thead><tbody id="experimental192-rows"></tbody></table></div>
+    <p>Verification counts use a 32-byte raw message. SHA-256 and SHA-512 compression counts are separate units;
+      neither is a measured duration. Full-tree generation is modeled, not timed.</p>
+    <p>Hardware-wallet, threshold-signing and device timings: unavailable for this family.
+      Local CPU measurements are reported separately with their machine and commit in the draft PR.
+      <a href="https://github.com/valargroup/sphincs.art#experimental-192-bit-family">Analysis and benchmark instructions</a>.</p>
+  </section>
+
   <section class="modes">
     <div class="tables">
       <h2>One signer</h2>
@@ -1026,7 +1047,7 @@ footer a + a { margin-left: 1.25rem; }
 // for the configuration chosen with the four toggles (height, shape, hash, FTS variant).
 (function () {
   // every load starts from the defaults: choices are not remembered
-  var S = { h: 26, shape: 'layered', hash: 'Keccak-256', v: 'fors' }, D = null;
+  var S = { security: '128', h: 26, shape: 'layered', hash: 'Keccak-256', v: 'fors' }, D = null;
   try { localStorage.removeItem('leanSphincs.config'); } catch (e) {}   // a choice saved by an earlier version
   // the devices: hashes per second for each hash, from data.json (rates[device][hash])
   function rate(dev) { return D.rates[dev][S.hash]; }
@@ -1034,6 +1055,8 @@ footer a + a { margin-left: 1.25rem; }
   function info(tip, cls) { return '<span class="info' + (cls || '') + '" tabindex="0" role="button" aria-label="More information" data-tip="' + tip + '">i</span>'; }
   var NOTE = 'https://github.com/TomWambsgans/sphincs.art/releases/download/doc-latest/leanSPHINCS.pdf';
   var LIFE_TIP = '127 bits of security (ROM), [proved in Lean](https://github.com/TomWambsgans/sphincs.art/tree/main/formal/sphincs)';
+  var modeTip = document.querySelector('[aria-labelledby="tl-shape"]').previousElementSibling.querySelector('.info');
+  var originalModeTip = modeTip.getAttribute('data-tip');
   // the two FTS, for the tip of the FTS variant
   var FOREST_TIP = '# WOTS forest\n8 trees of height 4. Each leaf hashes the top nodes of two subtrees of height 3 over WOTS keys of 6 chains of length 5, with target sum 5 ([paragraph 4](' + NOTE + '#page=8))\n(credit: Jonas Nick, [sig.golf](https://github.com/Layr-Labs/sig.golf/commit/3321b777a511a6b454aad7ab721e8ab1af21c4d0))';
   function forsTip(v) {
@@ -1159,8 +1182,18 @@ footer a + a { margin-left: 1.25rem; }
   }
 
   function render(quiet) {
-    var W = D.wallet, main = cfg(S.shape), lay = cfg('layered'), V = main.fors;
     document.body.dataset.v = S.v;
+    var experimental = S.security === '192';
+    document.body.dataset.family = S.security;
+    document.getElementById('experimental192').hidden = !experimental;
+    document.querySelector('section.modes').hidden = experimental;
+    document.querySelector('figure').hidden = experimental;
+    document.getElementById('tl-h').textContent = experimental ? 'Height' : 'Lifetime';
+    modeTip.setAttribute('data-tip', experimental ? 'Uniform uses three XMSS layers. Pruning keeps a subtree of a single XMSS tree and searches for a message digest that lands in it. The table includes each kept height and the full tree. The cover model accounts for the kept subtree, but full-scheme security and pruning privacy are unproved for this family.' : originalModeTip);
+    document.querySelector('[aria-labelledby="tl-h"]')?.previousElementSibling.querySelector('.info')?.setAttribute('data-tip', experimental ? 'Total tree height. The experimental cover-model budgets are listed below; no lifetime is proved.' : LIFE_TIP);
+    document.getElementById('ots-tip').setAttribute('data-tip', experimental ? '96 chains of four positions; target sum 182; 24-byte nodes.' : '64 chains of four positions; target sum 128; 16-byte nodes.');
+    [].forEach.call(document.querySelectorAll('[data-key="h"] button'), function (b) { b.innerHTML = experimental ? 'h = ' + b.dataset.val : '2<sup>' + (+b.dataset.val + 4) + '</sup>'; b.setAttribute('aria-label', experimental ? 'Height ' + b.dataset.val : '2 to the ' + (+b.dataset.val + 4)); });
+    [].forEach.call(document.querySelectorAll('[data-key="hash"] button'), function (b) { b.hidden = b.dataset.family !== S.security; });
 
     // the toggles
     [].forEach.call(document.querySelectorAll('.seg'), function (g) {
@@ -1170,6 +1203,9 @@ footer a + a { margin-left: 1.25rem; }
         b.tabIndex = on ? 0 : -1;
       });
     });
+
+    if (experimental) { render192(); return; }
+    var W = D.wallet, main = cfg(S.shape), lay = cfg('layered'), V = main.fors;
 
     // the parameter table
     set('h', S.shape === 'layered' ? split(main) : String(main.h));
@@ -1273,10 +1309,30 @@ footer a + a { margin-left: 1.25rem; }
     window.dispatchEvent(new Event('resize'));   // the sphinx finds its place again
   }
 
+  function count192(c) {
+    var pieces = [];
+    if (c.keccak) pieces.push(comma(c.keccak) + ' Keccak-f permutations');
+    if (c.sha256) pieces.push(comma(c.sha256) + ' SHA-256 compressions');
+    if (c.sha512) pieces.push(comma(c.sha512) + ' SHA-512 compressions');
+    return pieces.join(' + ');
+  }
+  function render192() {
+    var rows = D.level192.configs.filter(function (c) { return c.hash === S.hash && c.h === S.h && c.shape === S.shape && c.variant === S.v; });
+    var main = rows.find(function (c) { return c.b === S.h; });
+    set('h', S.shape === 'layered' ? split(main) : String(main.h));
+    set('k', isForest() ? '12' : '37'); set('a', isForest() ? '4 + 3' : '10');
+    set('size', comma(main.size) + ' bytes'); set('verify', count192(main.verify));
+    document.getElementById('v-tip').setAttribute('data-tip', 'Experimental 192 family: 12 WOTS-forest coordinates, or 37 FORS trees of height 10. Both use WOTS+C with 96 chains and target sum 182. No Lean proof applies.');
+    document.getElementById('experimental192-rows').innerHTML = rows.map(function (c) {
+      return '<tr><td>' + (c.shape === 'layered' ? c.layers[0] + ' (top layer)' : c.b + (c.b === c.h ? ' (full)' : '')) + '</td><td>' + comma(c.cover_model_signatures) + '</td><td>' + count192(c.keygen) + '</td></tr>';
+    }).join('');
+  }
+
   // The shape changes the text of the device table and of the threshold section: each [data-stable] block takes the
   // height of its taller shape, so that switching the shape does not move what is below it. Both shapes are rendered
   // and measured in one go, before the browser paints.
   function stabilize() {
+    if (S.security === '192') return;
     var els = [].slice.call(document.querySelectorAll('[data-stable]')), keep = S.shape, hs = els.map(function () { return 0; });
     els.forEach(function (e) { e.style.minHeight = ''; });
     ['pruned', 'layered'].forEach(function (sh) {
@@ -1294,6 +1350,7 @@ footer a + a { margin-left: 1.25rem; }
 
   function choose(key, val) {
     S[key] = key === 'h' ? +val : val;
+    if (key === 'security') S.hash = val === '192' ? 'SHAKE256' : 'Keccak-256';
     render();
   }
 
@@ -1305,6 +1362,7 @@ footer a + a { margin-left: 1.25rem; }
     });
     // a radio group: the arrows move the choice
     g.addEventListener('keydown', function (e) {
+      bs = [].slice.call(g.querySelectorAll('button')).filter(function (b) { return !b.hidden; });
       var i = bs.indexOf(document.activeElement), d = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[e.key];
       if (i < 0 || !d || !D) return;
       e.preventDefault();

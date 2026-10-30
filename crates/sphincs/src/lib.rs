@@ -9,8 +9,9 @@
 //!
 //! `Th(P, tw, M)` is the hash of `P | tw | M` truncated to `n = 16` bytes, with a 16-byte address
 //! `tw`; each hash has its own layout ([`hash`]). Every hash call goes through [`hash`], which also
-//! counts compressions (thread-local) so tests can check the note's costs.
+//! counts compressions in tests or with the `hash-counts` feature so the note's costs can be checked.
 
+mod bounded;
 mod hash;
 pub use hash::*;
 mod wots;
@@ -19,6 +20,9 @@ mod forest;
 pub use forest::*;
 mod scheme;
 pub use scheme::*;
+
+/// Experimental Category 3-targeted configurations; no Lean or quantum security proof is claimed.
+pub mod level192;
 
 /// `n`: hash value and Merkle node length, in bytes.
 pub const N: usize = 16;

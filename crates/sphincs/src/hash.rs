@@ -10,6 +10,7 @@
 //!   per key for the signer, once per verification for the verifier); a call then costs `ceil((n + 9) / 64)` compressions for its `n` bytes after
 //!   that block, the 9 being the padding byte and the length.
 
+#[cfg(any(test, feature = "hash-counts"))]
 use std::cell::Cell;
 
 use crate::*;
@@ -229,18 +230,23 @@ fn start(pp: &Pp, tw: &Tweak) -> Hasher {
     hasher
 }
 
+#[cfg(any(test, feature = "hash-counts"))]
 thread_local! {
     static COMPRESSIONS: Cell<u64> = const { Cell::new(0) };
 }
 
 /// Compressions (Keccak-f permutations for Keccak-256) this thread has spent in [`th`],
 /// [`th_pair`], [`th_digests`], [`Midstate`] and [`Pp::new`].
+#[cfg(any(test, feature = "hash-counts"))]
 pub fn compressions() -> u64 {
     COMPRESSIONS.with(Cell::get)
 }
 
 fn count_blocks(n: u64) {
+    #[cfg(any(test, feature = "hash-counts"))]
     COMPRESSIONS.with(|c| c.set(c.get() + n));
+    #[cfg(not(any(test, feature = "hash-counts")))]
+    let _ = n;
 }
 
 /// `Th(P, tw, payload)`, untruncated.
@@ -267,8 +273,7 @@ pub fn th_pair(pp: &Pp, tw: &Tweak, payload: &[u8]) -> [Digest; 2] {
 
 /// `Th` over a concatenation of digests: a Merkle node or a one-time leaf.
 pub fn th_digests(pp: &Pp, tw: &Tweak, values: &[Digest]) -> Digest {
-    let parts: Vec<&[u8]> = values.iter().map(|v| &v[..]).collect();
-    th_full(pp, tw, &parts)[..N].try_into().unwrap()
+    th(pp, tw, values.as_flattened())
 }
 
 /// The state after the whole blocks of `P | address | fixed`, for inputs that differ only in what
