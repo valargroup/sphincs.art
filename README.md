@@ -162,6 +162,14 @@ measurements belong in the PR discussion, separate from the calculator's counts.
 
 ### Memory use
 
+Signing checks the packed WOTS+C digit sum before expanding a candidate's 96
+positions. Failed candidates require no expanded array, and fixed layer offsets
+are calculated outside the randomizer search. Forest signing captures selected
+chain values while walking to their endpoints, avoiding duplicate prefix walks.
+This removes 912 SHA-256 compressions per SHA2 forest signature (456 Keccak-f
+permutations for SHAKE) without adding a buffer or enabling public precomputation.
+Parameters, search order, signature bytes and verification work remain unchanged.
+
 The 192-bit forest signer builds one coordinate at a time and keeps only the
 selected opening. Lower hypertree layers retain one pending Merkle node per
 height and the selected authentication path, rather than an entire temporary
